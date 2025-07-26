@@ -1,4 +1,7 @@
+// src/utils/api.js
 import axios from "axios";
+import store from "../store/store";
+import { logout } from "../store/slices/authSlice";
 
 export const baseUrl = "http://localhost:4521";
 const api = axios.create({
@@ -7,9 +10,10 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
 // Request interceptor to add token
 api.interceptors.request.use(
-    (config) => {
+  (config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -23,9 +27,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Faqat 401 va agar login/register sahifasida bo'lmasak
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+      const currentPath = window.location.pathname;
+      if (currentPath !== "/login" && currentPath !== "/register") {
+        // Redux store orqali logout qilish
+        store.dispatch(logout());
+        // Bu yerda hard reload qilmaslik kerak
+        // React Router o'zi redirect qiladi
+      }
     }
     return Promise.reject(error);
   }

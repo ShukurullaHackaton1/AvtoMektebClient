@@ -188,7 +188,7 @@ const Test = () => {
 
       {/* Question */}
       <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-        <div className="space-y-6">
+        <div className="space-y-2">
           {/* Question Number & Body */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
@@ -201,7 +201,7 @@ const Test = () => {
               {renderQuestionBody(question.body)}
             </div>
           </div>
-          <div className="w-[100%]">
+          <div className="w-[100%] h-100">
             {question.body.map(
               (item) =>
                 item.type === 2 ? (
@@ -209,7 +209,7 @@ const Test = () => {
                     key={item.order}
                     src={`${baseUrl}/${item.value}`}
                     alt={`image-${item.order}`}
-                    className=""
+                    className="w-100 h-100"
                   />
                 ) : null // yoki boshqa element, agar kerak bo‘lsa
             )}

@@ -1,3 +1,4 @@
+// src/store/slices/authSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../utils/api";
 
@@ -34,11 +35,15 @@ export const registerUser = createAsyncThunk(
 // Get Profile
 export const getProfile = createAsyncThunk(
   "auth/profile",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       const response = await api.get("/users/profile");
       return response.data.data;
     } catch (error) {
+      // Agar 401 xatolik bo'lsa, logout qilish
+      if (error.response?.status === 401) {
+        dispatch(logout());
+      }
       return rejectWithValue(
         error.response?.data?.message || "Failed to get profile"
       );
@@ -49,14 +54,40 @@ export const getProfile = createAsyncThunk(
 // Get Stats
 export const getStats = createAsyncThunk(
   "auth/stats",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       const response = await api.get("/users/stats");
       return response.data.data;
     } catch (error) {
+      // Agar 401 xatolik bo'lsa, faqat xatolikni qaytarish (logout qilmaslik)
+      if (error.response?.status === 401) {
+        // Stats uchun logout qilmaslik, chunki bu optional ma'lumot
+        return rejectWithValue("Unauthorized");
+      }
       return rejectWithValue(
         error.response?.data?.message || "Failed to get stats"
       );
+    }
+  }
+);
+
+// Token validation
+export const validateToken = createAsyncThunk(
+  "auth/validateToken",
+  async (_, { rejectWithValue, dispatch }) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return rejectWithValue("No token found");
+    }
+
+    try {
+      const response = await api.get("/users/profile");
+      return response.data.data;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        dispatch(logout());
+      }
+      return rejectWithValue("Invalid token");
     }
   }
 );
@@ -77,10 +108,17 @@ const authSlice = createSlice({
       state.stats = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.error = null;
       localStorage.removeItem("token");
     },
     clearError: (state) => {
       state.error = null;
+    },
+    // Token mavjudligini tekshirish
+    checkToken: (state) => {
+      const token = localStorage.getItem("token");
+      state.token = token;
+      state.isAuthenticated = !!token;
     },
   },
   extraReducers: (builder) => {
@@ -95,6 +133,7 @@ const authSlice = createSlice({
         state.user = action.payload.data;
         state.token = action.payload.token;
         state.isAuthenticated = true;
+        state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -111,6 +150,7 @@ const authSlice = createSlice({
         state.user = action.payload.data;
         state.token = action.payload.token;
         state.isAuthenticated = true;
+        state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -118,15 +158,42 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
       })
       // Profile
+      .addCase(getProfile.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(getProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.user = action.payload;
+        state.error = null;
+      })
+      .addCase(getProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        if (action.payload !== "Unauthorized") {
+          state.error = action.payload;
+        }
       })
       // Stats
       .addCase(getStats.fulfilled, (state, action) => {
         state.stats = action.payload;
+      })
+      .addCase(getStats.rejected, (state, action) => {
+        // Stats xatoligi uchun global error o'rnatmaslik
+        if (action.payload !== "Unauthorized") {
+          console.warn("Stats loading failed:", action.payload);
+        }
+      })
+      // Token validation
+      .addCase(validateToken.fulfilled, (state, action) => {
+        state.user = action.payload;
+        state.isAuthenticated = true;
+      })
+      .addCase(validateToken.rejected, (state) => {
+        state.isAuthenticated = false;
+        state.user = null;
+        state.token = null;
       });
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout, clearError, checkToken } = authSlice.actions;
 export default authSlice.reducer;
