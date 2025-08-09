@@ -37,6 +37,7 @@ const Test = () => {
   const [mistakeCount, setMistakeCount] = useState(0);
   const [showFailureModal, setShowFailureModal] = useState(false);
   const [questionResults, setQuestionResults] = useState({}); // Har bir savol uchun natija
+  const [answeredQuestions, setAnsweredQuestions] = useState(new Set());
 
   useEffect(() => {
     dispatch(resetTest());
@@ -100,18 +101,37 @@ const Test = () => {
         toast.success(t("correct"));
       } else {
         toast.error(t("incorrect"));
-        const newMistakeCount = mistakeCount + 1;
-        setMistakeCount(newMistakeCount);
-
-        // Agar 3 ta xato bo'lsa, testni to'xtatish
-        if (newMistakeCount >= 3) {
-          setShowFailureModal(true);
-        }
+        // FREE plan uchun 3 xato chegarasi olib tashlandi
+        // Xato count endi server tomonda boshqariladi
       }
     } catch (error) {
+      if (error.message === "Kunlik test limiti tugadi") {
+        // Plan limit tugagan bo'lsa
+        toast.error("Kunlik test limitingiz tugadi. PRO planga o'ting!");
+        navigate("/profile"); // Profile sahifasiga yo'naltirish
+        return;
+      }
       toast.error(t("error"));
     }
   };
+  useEffect(() => {
+    const fetchTemplate = async () => {
+      try {
+        const response = await dispatch(getTemplate({ lang, templateId }));
+        if (response.payload?.userPlan) {
+          // Plan ma'lumotlarini saqlash
+          setUserPlan(response.payload.userPlan);
+        }
+      } catch (error) {
+        if (error.message === "Kunlik test limiti tugadi") {
+          toast.error("Kunlik test limitingiz tugadi!");
+          navigate("/profile");
+        }
+      }
+    };
+
+    fetchTemplate();
+  }, [dispatch, lang, templateId, navigate]);
 
   const handleQuestionClick = (questionIndex) => {
     // Faqat javob berilgan savollarga o'tish mumkin
@@ -241,22 +261,6 @@ const Test = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Mistake Counter */}
-              <div
-                className={`flex items-center space-x-2 px-3 py-1 rounded-lg text-sm font-medium ${
-                  mistakeCount >= 2
-                    ? "bg-red-100 text-red-700"
-                    : mistakeCount >= 1
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-green-100 text-green-700"
-                }`}
-              >
-                <FiAlertTriangle size={14} />
-                <span>
-                  {t("mistakes")}: {mistakeCount}/3
-                </span>
-              </div>
-
               <div className="flex items-center space-x-2 text-sm text-gray-500">
                 <FiClock size={16} />
                 <span>

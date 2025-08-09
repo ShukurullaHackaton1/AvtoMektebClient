@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,18 +11,80 @@ import {
   FiCalendar,
   FiBriefcase,
   FiBarChart2,
+  FiCrop,
+  FiCheck,
+  FiX,
+  FiCreditCard,
+  FiCode,
+  FiExternalLink,
+  FiClock,
 } from "react-icons/fi";
 import { getProfile, getStats } from "../store/slices/authSlice";
+import api from "../utils/api";
+import toast from "react-hot-toast";
 
 const Profile = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const { user, stats, isLoading } = useSelector((state) => state.auth);
+  const [userPlan, setUserPlan] = useState(null);
+  const [paymentData, setPaymentData] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [loadingPayment, setLoadingPayment] = useState(false);
 
   useEffect(() => {
     dispatch(getProfile());
     dispatch(getStats());
+    fetchUserPlan();
+    fetchPaymentHistory();
   }, [dispatch]);
+
+  const fetchUserPlan = async () => {
+    try {
+      const response = await api.get("/templates/user-plan");
+      setUserPlan(response.data.data);
+    } catch (error) {
+      console.error("User plan fetch error:", error);
+    }
+  };
+
+  const fetchPaymentHistory = async () => {
+    try {
+      const response = await api.get("/payments/payment-history");
+      setPaymentHistory(response.data.data);
+    } catch (error) {
+      console.error("Payment history fetch error:", error);
+    }
+  };
+
+  const createPayment = async () => {
+    try {
+      setLoadingPayment(true);
+      const response = await api.post("/payments/create-payment");
+      setPaymentData(response.data.data);
+      setShowPaymentModal(true);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Xatolik yuz berdi");
+    } finally {
+      setLoadingPayment(false);
+    }
+  };
+
+  const checkPaymentStatus = async (paymentId) => {
+    try {
+      const response = await api.get(`/payments/payment-status/${paymentId}`);
+      if (response.data.data.status === "paid") {
+        toast.success("To'lov muvaffaqiyatli amalga oshirildi!");
+        setShowPaymentModal(false);
+        dispatch(getProfile());
+        fetchUserPlan();
+        fetchPaymentHistory();
+      }
+    } catch (error) {
+      console.error("Payment status check error:", error);
+    }
+  };
 
   const getRatingLevel = (successRate) => {
     if (successRate >= 90)
@@ -81,6 +143,9 @@ const Profile = () => {
   }
 
   const rating = stats ? getRatingLevel(stats.successRate) : getRatingLevel(0);
+  const isPro = user?.plan === "pro";
+  const isExpired =
+    user?.planExpiryDate && new Date(user.planExpiryDate) < new Date();
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -107,6 +172,11 @@ const Profile = () => {
                 >
                   <rating.icon size={16} className={rating.color} />
                 </div>
+                {isPro && !isExpired && (
+                  <div className="absolute -top-2 -left-2 w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <FiCrop size={16} className="text-yellow-600" />
+                  </div>
+                )}
               </div>
 
               {/* Name */}
@@ -174,8 +244,112 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Statistics */}
+        {/* Statistics and Plan */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Plan Card */}
+          <div
+            className={`rounded-2xl p-6 border-2 ${
+              isPro && !isExpired
+                ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200"
+                : "bg-white border-gray-200"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                {isPro && !isExpired ? (
+                  <FiCrop className="text-yellow-600" size={24} />
+                ) : (
+                  <FiUser className="text-gray-600" size={24} />
+                )}
+                <h3 className="text-xl font-bold text-gray-800">
+                  {isPro && !isExpired ? "PRO Plan" : "FREE Plan"}
+                </h3>
+              </div>
+              {isPro && !isExpired && (
+                <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                  Faol
+                </span>
+              )}
+            </div>
+
+            {isPro && !isExpired ? (
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2 text-green-600">
+                  <FiCheck size={16} />
+                  <span>Cheksiz testlar</span>
+                </div>
+                <div className="flex items-center space-x-2 text-green-600">
+                  <FiCheck size={16} />
+                  <span>Barcha funksiyalar</span>
+                </div>
+                <div className="flex items-center space-x-2 text-green-600">
+                  <FiCheck size={16} />
+                  <span>Premium qo'llab-quvvatlash</span>
+                </div>
+                {user?.planExpiryDate && (
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <FiClock size={16} />
+                    <span>
+                      Tugash sanasi:{" "}
+                      {new Date(user.planExpiryDate).toLocaleDateString(
+                        "uz-UZ"
+                      )}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <FiCheck size={16} />
+                    <span>Kuniga 20 ta test</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-400">
+                    <FiX size={16} />
+                    <span>Cheksiz testlar</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-400">
+                    <FiX size={16} />
+                    <span>Premium qo'llab-quvvatlash</span>
+                  </div>
+                </div>
+
+                {userPlan && (
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">
+                        Bugungi testlar
+                      </span>
+                      <span className="font-semibold text-gray-800">
+                        {userPlan.dailyUsed}/20
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${(userPlan.dailyUsed / 20) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={createPayment}
+                  disabled={loadingPayment}
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center space-x-2"
+                >
+                  <FiCrop size={18} />
+                  <span>
+                    {loadingPayment
+                      ? "Yuklanmoqda..."
+                      : "PRO ga o'tish - 35,000 so'm"}
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Overview Cards */}
           <div className="grid md:grid-cols-3 gap-6">
             <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200">
@@ -288,125 +462,137 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Achievements */}
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 border border-purple-100">
-            <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-              <FiAward className="mr-2" size={24} />
-              {t("achievements")}
-            </h3>
+          {/* Payment History */}
+          {paymentHistory.length > 0 && (
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <FiCreditCard className="mr-2" size={24} />
+                To'lovlar tarixi
+              </h3>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              <div
-                className={`p-4 rounded-lg border-2 ${
-                  (stats?.totalTests || 0) >= 10
-                    ? "border-green-200 bg-green-50"
-                    : "border-gray-200 bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <FiTarget
-                    className={`text-2xl ${
-                      (stats?.totalTests || 0) >= 10
-                        ? "text-green-600"
-                        : "text-gray-400"
-                    }`}
-                    size={24}
-                  />
-                  <div>
-                    <div className="font-medium text-gray-800">
-                      {t("testEnthusiast")}
+              <div className="space-y-3">
+                {paymentHistory.slice(0, 5).map((payment) => (
+                  <div
+                    key={payment._id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className={`w-3 h-3 rounded-full ${
+                          payment.status === "paid"
+                            ? "bg-green-500"
+                            : payment.status === "pending"
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
+                        }`}
+                      ></div>
+                      <div>
+                        <div className="font-medium text-gray-800">
+                          {payment.description}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {new Date(payment.createdAt).toLocaleDateString(
+                            "uz-UZ"
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      {t("testEnthusiastDesc")}
+                    <div className="text-right">
+                      <div className="font-bold text-gray-800">
+                        {payment.amount.toLocaleString()} so'm
+                      </div>
+                      <div
+                        className={`text-sm capitalize ${
+                          payment.status === "paid"
+                            ? "text-green-600"
+                            : payment.status === "pending"
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {payment.status}
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && paymentData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full space-y-6">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiCrop className="text-yellow-600" size={40} />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                PRO Planga o'tish
+              </h2>
+              <p className="text-gray-600">35,000 so'm</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium text-gray-800 mb-2">
+                  PRO Plan imkoniyatlari:
+                </h4>
+                <ul className="space-y-1 text-sm text-gray-600">
+                  <li className="flex items-center space-x-2">
+                    <FiCheck className="text-green-500" size={14} />
+                    <span>Cheksiz testlar</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <FiCheck className="text-green-500" size={14} />
+                    <span>Barcha funksiyalar</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <FiCheck className="text-green-500" size={14} />
+                    <span>1 oy amal qilish muddati</span>
+                  </li>
+                </ul>
               </div>
 
-              <div
-                className={`p-4 rounded-lg border-2 ${
-                  (stats?.successRate || 0) >= 80
-                    ? "border-green-200 bg-green-50"
-                    : "border-gray-200 bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <FiAward
-                    className={`text-2xl ${
-                      (stats?.successRate || 0) >= 80
-                        ? "text-green-600"
-                        : "text-gray-400"
-                    }`}
-                    size={24}
-                  />
-                  <div>
-                    <div className="font-medium text-gray-800">
-                      {t("teacher")}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {t("teacherDesc")}
-                    </div>
-                  </div>
-                </div>
+              <div className="space-y-3">
+                <a
+                  href={paymentData.clickUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <FiExternalLink size={18} />
+                  <span>Click orqali to'lash</span>
+                </a>
+
+                <button
+                  onClick={() => window.open(paymentData.qrCode, "_blank")}
+                  className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <FiCode size={18} />
+                  <span>QR kod orqali to'lash</span>
+                </button>
+
+                <button
+                  onClick={() => checkPaymentStatus(paymentData.paymentId)}
+                  className="w-full bg-gray-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                >
+                  To'lov holatini tekshirish
+                </button>
               </div>
 
-              <div
-                className={`p-4 rounded-lg border-2 ${
-                  (stats?.totalCorrect || 0) >= 50
-                    ? "border-green-200 bg-green-50"
-                    : "border-gray-200 bg-gray-50"
-                }`}
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="w-full border border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center space-x-3">
-                  <FiBriefcase
-                    className={`text-2xl ${
-                      (stats?.totalCorrect || 0) >= 50
-                        ? "text-green-600"
-                        : "text-gray-400"
-                    }`}
-                    size={24}
-                  />
-                  <div>
-                    <div className="font-medium text-gray-800">
-                      {t("knowledgeable")}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {t("knowledgeableDesc")}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                className={`p-4 rounded-lg border-2 ${
-                  (stats?.totalTests || 0) >= 100
-                    ? "border-green-200 bg-green-50"
-                    : "border-gray-200 bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <FiTrendingUp
-                    className={`text-2xl ${
-                      (stats?.totalTests || 0) >= 100
-                        ? "text-green-600"
-                        : "text-gray-400"
-                    }`}
-                    size={24}
-                  />
-                  <div>
-                    <div className="font-medium text-gray-800">
-                      {t("marathonRunner")}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {t("marathonRunnerDesc")}
-                    </div>
-                  </div>
-                </div>
-              </div>
+                Bekor qilish
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

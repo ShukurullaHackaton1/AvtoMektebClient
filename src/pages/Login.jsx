@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { FiPhone, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiPhone, FiLock, FiEye, FiEyeOff, FiBookOpen } from "react-icons/fi";
 import { loginUser, clearError } from "../store/slices/authSlice";
 import toast from "react-hot-toast";
 
@@ -180,22 +180,6 @@ const Login = () => {
                 Ro'yxatdan o'ting
               </Link>
             </p>
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="text-2xl mb-2">📚</div>
-            <div className="text-xs text-gray-600">1000+ Savol</div>
-          </div>
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="text-2xl mb-2">🌍</div>
-            <div className="text-xs text-gray-600">5 Til</div>
-          </div>
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="text-2xl mb-2">📊</div>
-            <div className="text-xs text-gray-600">Statistika</div>
           </div>
         </div>
       </div>

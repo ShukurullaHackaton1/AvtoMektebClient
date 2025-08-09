@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -25,6 +24,12 @@ import Mistakes from "./pages/Mistakes";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+
+// Admin Pages - YANGI
+// import AdminLogin from "./pages/AdminLogin";
+// import AdminDashboard from "./pages/AdminDashboard";
 
 // App ichidagi komponent token tekshirish uchun
 const AppContent = () => {
@@ -60,6 +65,10 @@ const AppContent = () => {
           element={isAuthenticated ? <Navigate to="/" replace /> : <Register />}
         />
 
+        {/* Admin routes - YANGI */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
         {/* Protected routes */}
         <Route
           path="/"
@@ -71,11 +80,12 @@ const AppContent = () => {
         >
           <Route index element={<Home />} />
           <Route path="templates" element={<Templates />} />
-          {/* <Route path="test/:lang/:templateId" element={<Test />} /> */}
           <Route path="mistakes" element={<Mistakes />} />
           <Route path="profile" element={<Profile />} />
         </Route>
+
         <Route path="/test/:lang/:templateId" element={<Test />} />
+
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
