@@ -9,9 +9,46 @@ const resources = {
       templates: "Shablonlar",
       mistakes: "Xatolar",
       profile: "Profil",
+      testFailed: "Test muvaffaqiyatsiz tugadi",
+      tooManyMistakes: "Siz 3 tadan ortiq xato qildingiz. Test to'xtatildi.",
+      finalResult: "Yakuniy natija",
+      correctAnswers: "To'g'ri javoblar",
+      wrongAnswers: "Noto'g'ri javoblar",
+      totalAnswered: "Jami javoblar",
+      backToTemplates: "Shablonlarga qaytish",
+      questionsNavigation: "Savollar navigatsiyasi",
+      selectAnswer: "Javobni tanlang",
+      current: "Joriy",
+      unanswered: "Javobsiz",
 
+      // Mistakes sahifasi uchun
+      noMistakesYet: "Hozircha hech qanday xato yo'q",
+      keepItUp: "Davom eting!",
+      analyzeMistakes:
+        "O'z xatolaringizni tahlil qiling va bilimlaringizni oshiring",
+
+      // Loading optimizatsiyasi uchun
+      loadingTemplates: "Shablonlar yuklanmoqda...",
+      templatesLoaded: "Shablonlar yuklandi",
+
+      // Profile sahifasi yangi achievements
+      testEnthusiast: "Test ishqibozi",
+      testEnthusiastDesc: "10 ta test ishlab chiqing",
+      teacher: "O'qituvchi",
+      teacherDesc: "80% muvaffaqiyat darajasiga erishing",
+      knowledgeable: "Bilimdon",
+      knowledgeableDesc: "50 ta to'g'ri javob bering",
+      marathonRunner: "Marafon yuguruvchisi",
+      marathonRunnerDesc: "100 ta test bajaring",
+
+      // Umumiy
+      excellent: "Ajoyib!",
+      noMistakes: "Sizda hech qanday xato yo'q!",
+      continueText: "Davom eting va ko'proq test bajaring!",
+      explanation: "Tushuntirish",
+      piece: "ta",
       // Home Page
-      welcome: "Intalim Test Tizimiga Xush Kelibsiz",
+      welcome: " AvtoTest     Test Tizimiga Xush Kelibsiz",
       homeDescription: "Professional test yechish platformasi",
       startTesting: "Testni Boshlash",
       viewTemplates: "Shablonlarni Ko'rish",
@@ -148,7 +185,7 @@ const resources = {
       marathonRunnerDesc: "100 ta test yeching",
 
       // Auth pages
-      welcomeToIntalim: "Intalim ga kirish",
+      welcomeToIntalim: " AvtoTest    ga kirish",
       welcomeDesc: "Test tizimiga xush kelibsiz",
       enterPhone: "90 123 45 67",
       enterName: "Ismingizni kiriting",
@@ -186,9 +223,46 @@ const resources = {
       templates: "Шаблоны",
       mistakes: "Ошибки",
       profile: "Профиль",
+      testFailed: "Тест завершен неудачно",
+      tooManyMistakes: "Вы сделали более 3 ошибок. Тест остановлен.",
+      finalResult: "Итоговый результат",
+      correctAnswers: "Правильные ответы",
+      wrongAnswers: "Неправильные ответы",
+      totalAnswered: "Всего ответов",
+      backToTemplates: "Вернуться к шаблонам",
+      questionsNavigation: "Навигация по вопросам",
+      selectAnswer: "Выберите ответ",
+      current: "Текущий",
+      unanswered: "Без ответа",
+
+      // Mistakes sahifasi uchun
+      noMistakesYet: "Пока нет ошибок",
+      keepItUp: "Так держать!",
+      analyzeMistakes: "Анализируйте свои ошибки и повышайте знания",
+
+      // Loading optimizatsiyasi uchun
+      loadingTemplates: "Загрузка шаблонов...",
+      templatesLoaded: "Шаблоны загружены",
+
+      // Profile sahifasi yangi achievements
+      testEnthusiast: "Энтузиаст тестов",
+      testEnthusiastDesc: "Пройдите 10 тестов",
+      teacher: "Учитель",
+      teacherDesc: "Достигните 80% успеха",
+      knowledgeable: "Знающий",
+      knowledgeableDesc: "Дайте 50 правильных ответов",
+      marathonRunner: "Марафонец",
+      marathonRunnerDesc: "Пройдите 100 тестов",
+
+      // Umumiy
+      excellent: "Отлично!",
+      noMistakes: "У вас нет ошибок!",
+      continueText: "Продолжайте и делайте больше тестов!",
+      explanation: "Объяснение",
+      piece: "шт",
 
       // Home Page
-      welcome: "Добро пожаловать в Intalim Test System",
+      welcome: "Добро пожаловать в  AvtoTest Test System",
       homeDescription: "Профессиональная платформа для решения тестов",
       startTesting: "Начать Тестирование",
       viewTemplates: "Просмотреть Шаблоны",
@@ -321,7 +395,7 @@ const resources = {
       marathonRunnerDesc: "Решите 100 тестов",
 
       // Auth pages
-      welcomeToIntalim: "Вход в Intalim",
+      welcomeToIntalim: "Вход в AvtoTest",
       welcomeDesc: "Добро пожаловать в тестовую систему",
       enterPhone: "90 123 45 67",
       enterName: "Введите ваше имя",
@@ -359,9 +433,47 @@ const resources = {
       templates: "Шаблонлар",
       mistakes: "Хатолар",
       profile: "Профил",
+      mistakes: "Хаталар",
+      testFailed: "Тест муваффақиятсиз тугади",
+      tooManyMistakes: "Сиз 3 тадан ортиқ хато қилдингиз. Тест тўхтатилди.",
+      finalResult: "Якуний натижа",
+      correctAnswers: "Тўғри жавоблар",
+      wrongAnswers: "Нотўғри жавоблар",
+      totalAnswered: "Жами жавоблар",
+      backToTemplates: "Шаблонларга қайтиш",
+      questionsNavigation: "Саволлар навигацияси",
+      selectAnswer: "Жавобни танланг",
+      current: "Жорий",
+      unanswered: "Жавобсиз",
 
+      // Mistakes sahifasi uchun
+      noMistakesYet: "Ҳозирча ҳеч қандай хато йўқ",
+      keepItUp: "Давом етинг!",
+      analyzeMistakes:
+        "Ўз хаталарингизни таҳлил қилинг ва билимларингизни ошириш",
+
+      // Loading optimizatsiyasi uchun
+      loadingTemplates: "Шаблонлар юкланмоқда...",
+      templatesLoaded: "Шаблонлар юкланди",
+
+      // Profile sahifasi yangi achievements
+      testEnthusiast: "Тест ишқибози",
+      testEnthusiastDesc: "10 та тест ишлаб чиқинг",
+      teacher: "Ўқитувчи",
+      teacherDesc: "80% муваффақият даражасига еришинг",
+      knowledgeable: "Билимдон",
+      knowledgeableDesc: "50 та тўғри жавоб беринг",
+      marathonRunner: "Марафон югурувчиси",
+      marathonRunnerDesc: "100 та тест бажаринг",
+
+      // Umumiy
+      excellent: "Ажойиб!",
+      noMistakes: "Сизда ҳеч қандай хато йўқ!",
+      continueText: "Давом етинг ва кўпроқ тест бажаринг!",
+      explanation: "Тушунтириш",
+      piece: "та",
       // Home Page
-      welcome: "Intalim Тест Тизимига Хуш Келибсиз",
+      welcome: " AvtoTest     Тест Тизимига Хуш Келибсиз",
       homeDescription: "Профессионал тест ечиш платформаси",
       startTesting: "Тестни Бошлаш",
       viewTemplates: "Шаблонларни Кўриш",
@@ -496,7 +608,7 @@ const resources = {
       marathonRunnerDesc: "100 та тест ечинг",
 
       // Auth pages
-      welcomeToIntalim: "Intalim га кириш",
+      welcomeToIntalim: " AvtoTest    га кириш",
       welcomeDesc: "Тест тизимига хуш келибсиз",
       enterPhone: "90 123 45 67",
       enterName: "Исмингизни киритинг",
@@ -535,8 +647,46 @@ const resources = {
       mistakes: "Qátеlikler",
       profile: "Profil",
 
+      mistakes: "Qátelikler",
+      testFailed: "Test sátsiz bitti",
+      tooManyMistakes: "Siz 3 tadan artıq qátelik jasadıńız. Test toqtatıldı.",
+      finalResult: "Aqırģı nátiyje",
+      correctAnswers: "Durıs juwaplar",
+      wrongAnswers: "Qáte juwaplar",
+      totalAnswered: "Barsha juwaplar",
+      backToTemplates: "Shablonlarģa qaytıw",
+      questionsNavigation: "Sawallar nawigaciyası",
+      selectAnswer: "Juwaptı saylań",
+      current: "Házirgi",
+      unanswered: "Juwapsız",
+
+      // Mistakes sahifasi uchun
+      noMistakesYet: "Házirshede esh qanday qáte joq",
+      keepItUp: "Dawam etiń!",
+      analyzeMistakes: "Óz qáteliklerinizdi tallań hám bilimińizdi arttırıń",
+
+      // Loading optimizatsiyasi uchun
+      loadingTemplates: "Shablonlar júklenmekte...",
+      templatesLoaded: "Shablonlar júklendi",
+
+      // Profile sahifasi yangi achievements
+      testEnthusiast: "Test máhebkeri",
+      testEnthusiastDesc: "10 test jasań",
+      teacher: "Mugalım",
+      teacherDesc: "80% jetiskerlik dárejesine jetiń",
+      knowledgeable: "Bilimli",
+      knowledgeableDesc: "50 durıs juwap beriń",
+      marathonRunner: "Marafon júgirishisi",
+      marathonRunnerDesc: "100 test jasań",
+
+      // Umumiy
+      excellent: "Keremet!",
+      noMistakes: "Sizde esh qanday qáte joq!",
+      continueText: "Dawam etiń hám kóbirek test jasań!",
+      explanation: "Túsindiriw",
+      piece: "dana",
       // Home Page
-      welcome: "Intalim Test Sistemasına Xosh Kelipsiz",
+      welcome: " AvtoTest     Test Sistemasına Xosh Kelipsiz",
       homeDescription: "Professional test sheshiw platforması",
       startTesting: "Testni Baslaw",
       viewTemplates: "Shablonlardı Kóriw",
@@ -672,7 +822,7 @@ const resources = {
       marathonRunnerDesc: "100 ta test sheshiń",
 
       // Auth pages
-      welcomeToIntalim: "Intalim ga kiriw",
+      welcomeToIntalim: " AvtoTest    ga kiriw",
       welcomeDesc: "Test sistemasına xosh kelipsiz",
       enterPhone: "90 123 45 67",
       enterName: "Atıńızdı kiritiń",
@@ -712,7 +862,7 @@ const resources = {
       profile: "Профил",
 
       // Home Page
-      welcome: "Intalim Тест Системасына Хош Келипсиз",
+      welcome: " AvtoTest     Тест Системасына Хош Келипсиз",
       homeDescription: "Профессионал тест шешив платформасы",
       startTesting: "Тестни Баслав",
       viewTemplates: "Шаблонларды Көрив",
@@ -848,7 +998,7 @@ const resources = {
       marathonRunnerDesc: "100 та тест шешиң",
 
       // Auth pages
-      welcomeToIntalim: "Intalim га кирив",
+      welcomeToIntalim: " AvtoTest    га кирив",
       welcomeDesc: "Тест системасына хош келипсиз",
       enterPhone: "90 123 45 67",
       enterName: "Атыңызды киритиң",

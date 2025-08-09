@@ -39,7 +39,7 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Toaster
-        position="top-right"
+        position="top-center"
         toastOptions={{
           duration: 3000,
           style: {
@@ -71,11 +71,11 @@ const AppContent = () => {
         >
           <Route index element={<Home />} />
           <Route path="templates" element={<Templates />} />
-          <Route path="test/:lang/:templateId" element={<Test />} />
+          {/* <Route path="test/:lang/:templateId" element={<Test />} /> */}
           <Route path="mistakes" element={<Mistakes />} />
           <Route path="profile" element={<Profile />} />
         </Route>
-
+        <Route path="/test/:lang/:templateId" element={<Test />} />
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

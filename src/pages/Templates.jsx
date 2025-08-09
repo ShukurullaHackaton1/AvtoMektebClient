@@ -13,6 +13,7 @@ const Templates = () => {
     (state) => state.templates
   );
   const [selectedLang, setSelectedLang] = useState(i18n.language);
+  const [loadingCache, setLoadingCache] = useState({});
 
   const languages = [
     { code: "uz", name: "O'zbekcha", flag: "🇺🇿" },
@@ -22,9 +23,12 @@ const Templates = () => {
   ];
 
   useEffect(() => {
-    dispatch(getTemplates(selectedLang));
-    console.log(templates);
-  }, [dispatch, selectedLang]);
+    // Faqat hozirgi til uchun templates yuklaymiz
+    if (!loadingCache[selectedLang]) {
+      dispatch(getTemplates(selectedLang));
+      setLoadingCache((prev) => ({ ...prev, [selectedLang]: true }));
+    }
+  }, [dispatch, selectedLang, loadingCache]);
 
   useEffect(() => {
     if (error) {
@@ -32,10 +36,22 @@ const Templates = () => {
     }
   }, [error]);
 
+  const handleLanguageChange = (langCode) => {
+    setSelectedLang(langCode);
+    // Agar bu til uchun ma'lumot yuklanmagan bo'lsa, yuklaymiz
+    if (!loadingCache[langCode]) {
+      dispatch(getTemplates(langCode));
+      setLoadingCache((prev) => ({ ...prev, [langCode]: true }));
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-600">{t("loading")}</p>
+        </div>
       </div>
     );
   }
@@ -57,7 +73,7 @@ const Templates = () => {
             {languages.map((lang) => (
               <button
                 key={lang.code}
-                onClick={() => setSelectedLang(lang.code)}
+                onClick={() => handleLanguageChange(lang.code)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                   selectedLang === lang.code
                     ? "bg-blue-100 text-blue-700 shadow-sm"

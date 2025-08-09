@@ -10,6 +10,7 @@ import {
   FiAward,
   FiCalendar,
   FiBriefcase,
+  FiBarChart2,
 } from "react-icons/fi";
 import { getProfile, getStats } from "../store/slices/authSlice";
 
@@ -50,7 +51,7 @@ const Profile = () => {
         level: t("average"),
         color: "text-yellow-600",
         bg: "bg-yellow-100",
-        icon: FiBarChart3,
+        icon: FiBarChart2,
       };
     return {
       level: t("beginner"),
