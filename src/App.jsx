@@ -9,12 +9,14 @@ import { Provider, useDispatch, useSelector } from "react-redux";
 import { Toaster } from "react-hot-toast";
 import store from "./store/store";
 import { checkToken } from "./store/slices/authSlice";
+import { checkAdminToken } from "./store/slices/adminSlice";
 import "./i18n/i18n";
 import "./index.css";
 
 // Components
 import Layout from "./components/Layout/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
 
 // Pages
 import Home from "./pages/Home";
@@ -24,22 +26,36 @@ import Mistakes from "./pages/Mistakes";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import StudentDetails from "./pages/StudentDetails";
 
-// Admin Pages - YANGI
-// import AdminLogin from "./pages/AdminLogin";
-// import AdminDashboard from "./pages/AdminDashboard";
-
-// App ichidagi komponent token tekshirish uchun
 const AppContent = () => {
   const dispatch = useDispatch();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated: userAuth, user } = useSelector(
+    (state) => state.auth
+  );
+  const { isAuthenticated: adminAuth, admin } = useSelector(
+    (state) => state.admin
+  );
 
   useEffect(() => {
-    // App yuklanganda token mavjudligini tekshirish
+    // Token mavjudligini tekshirish
     dispatch(checkToken());
+    dispatch(checkAdminToken());
   }, [dispatch]);
+
+  // Login redirect logic
+  const getLoginRedirect = () => {
+    if (adminAuth && admin) {
+      return "/admin/dashboard";
+    }
+    if (userAuth && user?.phone) {
+      return "/";
+    }
+    return null;
+  };
+
+  const loginRedirect = getLoginRedirect();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -58,18 +74,34 @@ const AppContent = () => {
         {/* Public routes */}
         <Route
           path="/login"
-          element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+          element={
+            loginRedirect ? <Navigate to={loginRedirect} replace /> : <Login />
+          }
         />
         <Route
           path="/register"
-          element={isAuthenticated ? <Navigate to="/" replace /> : <Register />}
+          element={userAuth ? <Navigate to="/" replace /> : <Register />}
         />
 
-        {/* Admin routes - YANGI */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        {/* Admin routes */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/students/:studentId"
+          element={
+            <AdminProtectedRoute>
+              <StudentDetails />
+            </AdminProtectedRoute>
+          }
+        />
 
-        {/* Protected routes */}
+        {/* Client routes */}
         <Route
           path="/"
           element={
@@ -84,7 +116,14 @@ const AppContent = () => {
           <Route path="profile" element={<Profile />} />
         </Route>
 
-        <Route path="/test/:lang/:templateId" element={<Test />} />
+        <Route
+          path="/test/:lang/:templateId"
+          element={
+            <ProtectedRoute>
+              <Test />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />

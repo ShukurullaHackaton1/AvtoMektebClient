@@ -214,6 +214,110 @@ const resources = {
       registerSuccess: "Muvaffaqiyatli ro'yxatdan o'tdingiz!",
       testFinished: "Test muvaffaqiyatli yakunlandi!",
       selectAnswer: "Iltimos javobni tanlang",
+      // Admin panel translations
+      adminPanel: "Admin Panel",
+      systemManagement: "Tizim boshqaruvi",
+      dashboard: "Boshqaruv paneli",
+      students: "Talabalar",
+      payments: "To'lovlar",
+      analytics: "Tahlil",
+      totalUsers: "Jami foydalanuvchilar",
+      proUsers: "PRO foydalanuvchilar",
+      todayRevenue: "Bugungi daromad",
+      monthlyRevenue: "Oylik daromad",
+      topUsers: "Top foydalanuvchilar",
+      recentPayments: "So'nggi to'lovlar",
+      userDetails: "Foydalanuvchi tafsilotlari",
+      overview: "Umumiy ko'rinish",
+      testActivity: "Test faoliyati",
+      paymentHistory: "To'lovlar tarixi",
+      mistakesHistory: "Xatolar tarixi",
+
+      // Student details
+      contactInfo: "Aloqa ma'lumotlari",
+      registeredDate: "Ro'yxatdan o'tgan sana",
+      currentPlan: "Joriy plan",
+      planExpiry: "Plan tugash sanasi",
+      quickStats: "Tezkor statistika",
+      successRate: "Muvaffaqiyat darajasi",
+      testsCompleted: "Bajarilgan testlar",
+      averageCorrect: "O'rtacha to'g'ri javoblar",
+      testPerformance: "Test natijalari",
+
+      // Test persistence
+      testSession: "Test sessiyasi",
+      resumeTest: "Testni davom ettirish",
+      testProgress: "Test jarayoni",
+      answeredQuestions: "Javob berilgan savollar",
+      remainingQuestions: "Qolgan savollar",
+      sessionSaved: "Sessiya saqlandi",
+      sessionLoaded: "Sessiya yuklandi",
+      completedQuestions: "Tugallangan savollar",
+      finishTestPrompt: "Testni tugatish uchun barcha savollarga javob bering",
+
+      // Navigation and UI
+      backToDashboard: "Dashboardga qaytish",
+      viewDetails: "Tafsilotlarni ko'rish",
+      refresh: "Yangilash",
+      filter: "Filtr",
+      search: "Qidirish",
+      export: "Eksport",
+      print: "Chop etish",
+      download: "Yuklab olish",
+
+      // Status and states
+      active: "Faol",
+      inactive: "Nofaol",
+      pending: "Kutilmoqda",
+      completed: "Tugallangan",
+      failed: "Muvaffaqiyatsiz",
+      expired: "Muddati tugagan",
+
+      // Form labels
+      username: "Foydalanuvchi nomi",
+      fullName: "To'liq ismi",
+      status: "Holat",
+      planType: "Plan turi",
+      joinDate: "Qo'shilish sanasi",
+      lastActivity: "So'nggi faollik",
+
+      // Buttons and actions
+      viewProfile: "Profilni ko'rish",
+      editUser: "Foydalanuvchini tahrirlash",
+      deleteUser: "Foydalanuvchini o'chirish",
+      blockUser: "Foydalanuvchini bloklash",
+      unblockUser: "Blokdan chiqarish",
+      resetPassword: "Parolni tiklash",
+
+      // Pagination
+      page: "Sahifa",
+      previous: "Oldingi",
+      next: "Keyingi",
+      showingResults: "Natijalar ko'rsatilmoqda",
+      of: "dan",
+
+      // Messages
+      noDataFound: "Ma'lumot topilmadi",
+      loadingData: "Ma'lumotlar yuklanmoqda",
+      errorLoadingData: "Ma'lumotlarni yuklashda xatolik",
+      actionCompleted: "Amal muvaffaqiyatli bajarildi",
+      actionFailed: "Amalni bajarishda xatolik",
+      confirmAction: "Amalni tasdiqlaysizmi?",
+
+      // Time and dates
+      today: "Bugun",
+      yesterday: "Kecha",
+      thisWeek: "Shu hafta",
+      thisMonth: "Shu oy",
+      lastMonth: "O'tgan oy",
+      thisYear: "Shu yil",
+
+      // Login improvements
+      clientLogin: "Mijoz sifatida kirish",
+      adminLogin: "Admin sifatida kirish",
+      switchToClient: "Mijoz paneliga o'tish",
+      switchToAdmin: "Admin paneliga o'tish",
+      loginAs: "Sifatida kirish",
     },
   },
   ru: {
@@ -424,6 +528,110 @@ const resources = {
       registerSuccess: "Успешная регистрация!",
       testFinished: "Тест успешно завершен!",
       selectAnswer: "Пожалуйста, выберите ответ",
+      // Admin panel translations
+      adminPanel: "Панель администратора",
+      systemManagement: "Управление системой",
+      dashboard: "Панель управления",
+      students: "Студенты",
+      payments: "Платежи",
+      analytics: "Аналитика",
+      totalUsers: "Всего пользователей",
+      proUsers: "PRO пользователи",
+      todayRevenue: "Сегодняшний доход",
+      monthlyRevenue: "Месячный доход",
+      topUsers: "Топ пользователи",
+      recentPayments: "Последние платежи",
+      userDetails: "Детали пользователя",
+      overview: "Обзор",
+      testActivity: "Активность тестов",
+      paymentHistory: "История платежей",
+      mistakesHistory: "История ошибок",
+
+      // Student details
+      contactInfo: "Контактная информация",
+      registeredDate: "Дата регистрации",
+      currentPlan: "Текущий план",
+      planExpiry: "Срок действия плана",
+      quickStats: "Быстрая статистика",
+      successRate: "Процент успеха",
+      testsCompleted: "Тесты завершены",
+      averageCorrect: "Средние правильные ответы",
+      testPerformance: "Результаты тестов",
+
+      // Test persistence
+      testSession: "Сессия теста",
+      resumeTest: "Продолжить тест",
+      testProgress: "Прогресс теста",
+      answeredQuestions: "Отвеченные вопросы",
+      remainingQuestions: "Оставшиеся вопросы",
+      sessionSaved: "Сессия сохранена",
+      sessionLoaded: "Сессия загружена",
+      completedQuestions: "Завершенные вопросы",
+      finishTestPrompt: "Ответьте на все вопросы, чтобы завершить тест",
+
+      // Navigation and UI
+      backToDashboard: "Вернуться к панели",
+      viewDetails: "Посмотреть детали",
+      refresh: "Обновить",
+      filter: "Фильтр",
+      search: "Поиск",
+      export: "Экспорт",
+      print: "Печать",
+      download: "Скачать",
+
+      // Status and states
+      active: "Активный",
+      inactive: "Неактивный",
+      pending: "В ожидании",
+      completed: "Завершено",
+      failed: "Неудачно",
+      expired: "Истек",
+
+      // Form labels
+      username: "Имя пользователя",
+      fullName: "Полное имя",
+      status: "Статус",
+      planType: "Тип плана",
+      joinDate: "Дата присоединения",
+      lastActivity: "Последняя активность",
+
+      // Buttons and actions
+      viewProfile: "Посмотреть профиль",
+      editUser: "Редактировать пользователя",
+      deleteUser: "Удалить пользователя",
+      blockUser: "Заблокировать пользователя",
+      unblockUser: "Разблокировать",
+      resetPassword: "Сбросить пароль",
+
+      // Pagination
+      page: "Страница",
+      previous: "Предыдущая",
+      next: "Следующая",
+      showingResults: "Показаны результаты",
+      of: "из",
+
+      // Messages
+      noDataFound: "Данные не найдены",
+      loadingData: "Загрузка данных",
+      errorLoadingData: "Ошибка загрузки данных",
+      actionCompleted: "Действие успешно выполнено",
+      actionFailed: "Ошибка выполнения действия",
+      confirmAction: "Подтвердить действие?",
+
+      // Time and dates
+      today: "Сегодня",
+      yesterday: "Вчера",
+      thisWeek: "На этой неделе",
+      thisMonth: "В этом месяце",
+      lastMonth: "В прошлом месяце",
+      thisYear: "В этом году",
+
+      // Login improvements
+      clientLogin: "Войти как клиент",
+      adminLogin: "Войти как администратор",
+      switchToClient: "Переключиться на клиентскую панель",
+      switchToAdmin: "Переключиться на панель администратора",
+      loginAs: "Войти как",
     },
   },
   uz_kiril: {
@@ -637,6 +845,38 @@ const resources = {
       registerSuccess: "Муваффақиятли рўйхатдан ўтдингиз!",
       testFinished: "Тест муваффақиятли якунланди!",
       selectAnswer: "Илтимос жавобни танланг",
+      // Admin panel translations
+      adminPanel: "Админ панел",
+      systemManagement: "Тизим бошқаруви",
+      dashboard: "Бошқарув панели",
+      students: "Талабалар",
+      payments: "Тўловлар",
+      analytics: "Таҳлил",
+      totalUsers: "Жами фойдаланувчилар",
+      proUsers: "PRO фойдаланувчилар",
+      todayRevenue: "Бугунги даромад",
+      monthlyRevenue: "Ойлик даромад",
+      topUsers: "Топ фойдаланувчилар",
+      recentPayments: "Сўнгги тўловлар",
+      userDetails: "Фойдаланувчи тафсилотлари",
+      overview: "Умумий кўриниш",
+      testActivity: "Тест фаоллиги",
+      paymentHistory: "Тўловлар тарихи",
+      mistakesHistory: "Хатолар тарихи",
+
+      // Test persistence
+      testSession: "Тест сессияси",
+      resumeTest: "Тестни давом еттириш",
+      testProgress: "Тест жараёни",
+      answeredQuestions: "Жавоб берилган саволлар",
+      completedQuestions: "Тугалланган саволлар",
+      finishTestPrompt: "Тестни тугатиш учун барча саволларга жавоб беринг",
+
+      // Login improvements
+      clientLogin: "Мижоз сифатида кириш",
+      adminLogin: "Админ сифатида кириш",
+      switchToClient: "Мижоз панелига ўтиш",
+      switchToAdmin: "Админ панелига ўтиш",
     },
   },
   kaa: {
@@ -724,7 +964,7 @@ const resources = {
       totalTests: "Barlıq testler",
       correctAnswers: "Duris juwaplar",
       wrongAnswers: "Nadúris juwaplar",
-      successRate: "Tabıslılıq foizi",
+      successRate: "Tabıslılıq payızı",
 
       // Auth
       login: "Kiriw",
@@ -1027,6 +1267,38 @@ const resources = {
       registerSuccess: "Табыслы дизимнен өттиңиз!",
       testFinished: "Тест табыслы тамамланды!",
       selectAnswer: "Жувапты талласыңызды өтин етемиз",
+      // Admin panel translations
+      adminPanel: "Admin panel",
+      systemManagement: "Sistema basqarıwı",
+      dashboard: "Basqarıw paneli",
+      students: "Studentler",
+      payments: "Tólewler",
+      analytics: "Tahlil",
+      totalUsers: "Barlıq paydalanıwshılar",
+      proUsers: "PRO paydalanıwshılar",
+      todayRevenue: "Búgingi kiriw",
+      monthlyRevenue: "Aylıq kiriw",
+      topUsers: "Top paydalanıwshılar",
+      recentPayments: "Soń tólewler",
+      userDetails: "Paydalanıwshı aqpanı",
+      overview: "Umumiy kóriw",
+      testActivity: "Test aktiwligi",
+      paymentHistory: "Tólewler tarihi",
+      mistakesHistory: "Qátelikler tarihi",
+
+      // Test persistence
+      testSession: "Test sessiyası",
+      resumeTest: "Testni dawam ettiriw",
+      testProgress: "Test barawı",
+      answeredQuestions: "Juwap berilgen sorawlar",
+      completedQuestions: "Tamamlanģan sorawlar",
+      finishTestPrompt: "Testni tamamlaw úshin barlıq sorawlarģa juwap beriň",
+
+      // Login improvements
+      clientLogin: "Mijoz sıpatında kiriw",
+      adminLogin: "Admin sıpatında kiriw",
+      switchToClient: "Mijoz paneliga ótiw",
+      switchToAdmin: "Admin paneliga ótiw",
     },
   },
 };

@@ -19,7 +19,6 @@ const Templates = () => {
     { code: "uz", name: "O'zbekcha", flag: "🇺🇿" },
     { code: "ru", name: "Русский", flag: "🇷🇺" },
     { code: "uz_kiril", name: "Ўзбекча", flag: "🇺🇿" },
-    { code: "kaa", name: "Qaraqalpaqsha", flag: "🇰aa" },
   ];
 
   useEffect(() => {

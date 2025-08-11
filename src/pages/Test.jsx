@@ -16,6 +16,8 @@ import {
   checkAnswer,
   setCurrentQuestion,
   resetTest,
+  loadTestSession,
+  updateTestSession,
 } from "../store/slices/templateSlice";
 import toast from "react-hot-toast";
 import { baseUrl } from "../utils/api";
@@ -26,33 +28,61 @@ const Test = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { currentTemplate, currentQuestion, isLoading } = useSelector(
-    (state) => state.templates
-  );
+  const {
+    currentTemplate,
+    currentQuestion,
+    isLoading,
+    questionResults,
+    testSessions,
+    currentSessionKey,
+  } = useSelector((state) => state.templates);
+
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [lastResult, setLastResult] = useState(null);
-  const [userAnswers, setUserAnswers] = useState([]);
   const [isAnswered, setIsAnswered] = useState(false);
   const [mistakeCount, setMistakeCount] = useState(0);
   const [showFailureModal, setShowFailureModal] = useState(false);
-  const [questionResults, setQuestionResults] = useState({}); // Har bir savol uchun natija
-  const [answeredQuestions, setAnsweredQuestions] = useState(new Set());
+
+  const sessionKey = `test_session_${lang}_${templateId}`;
+  const currentSession = testSessions[sessionKey];
 
   useEffect(() => {
-    dispatch(resetTest());
-    dispatch(getTemplate({ lang, templateId }));
+    // Load test session first
+    dispatch(loadTestSession({ lang, templateId })).then(() => {
+      // Then load template
+      dispatch(getTemplate({ lang, templateId }));
+    });
+
     setMistakeCount(0);
-    setQuestionResults({});
   }, [dispatch, lang, templateId]);
 
   useEffect(() => {
-    // Reset state when question changes
-    setSelectedAnswer(null);
-    setShowResult(false);
-    setLastResult(null);
-    setIsAnswered(false);
-  }, [currentQuestion]);
+    // Check if current question is already answered
+    if (currentTemplate && currentSession) {
+      const question = currentTemplate.template.questions[currentQuestion];
+      if (
+        question &&
+        currentSession.answers &&
+        currentSession.answers[question.id]
+      ) {
+        const savedAnswer = currentSession.answers[question.id];
+        setSelectedAnswer(savedAnswer.selectedAnswer);
+        setIsAnswered(true);
+        setShowResult(true);
+        setLastResult({
+          isCorrect: savedAnswer.isCorrect,
+          correctAnswer: savedAnswer.correctAnswer,
+        });
+      } else {
+        // Reset state for unanswered question
+        setSelectedAnswer(null);
+        setShowResult(false);
+        setLastResult(null);
+        setIsAnswered(false);
+      }
+    }
+  }, [currentQuestion, currentTemplate, currentSession]);
 
   const handleAnswerSelect = (answerId) => {
     if (!isAnswered) {
@@ -82,106 +112,37 @@ const Test = () => {
       setShowResult(true);
       setIsAnswered(true);
 
-      // Save user answer
-      const newAnswer = {
-        questionId: question.id,
-        selectedAnswer,
-        isCorrect: result.isCorrect,
-        correctAnswer: result.correctAnswer,
-      };
-      setUserAnswers((prev) => [...prev, newAnswer]);
-
-      // Question results ni yangilash
-      setQuestionResults((prev) => ({
-        ...prev,
-        [currentQuestion]: result.isCorrect,
-      }));
-
       if (result.isCorrect) {
         toast.success(t("correct"));
       } else {
         toast.error(t("incorrect"));
-        // FREE plan uchun 3 xato chegarasi olib tashlandi
-        // Xato count endi server tomonda boshqariladi
       }
     } catch (error) {
       if (error.message === "Kunlik test limiti tugadi") {
-        // Plan limit tugagan bo'lsa
         toast.error("Kunlik test limitingiz tugadi. PRO planga o'ting!");
-        navigate("/profile"); // Profile sahifasiga yo'naltirish
+        navigate("/profile");
         return;
       }
       toast.error(t("error"));
     }
   };
-  useEffect(() => {
-    const fetchTemplate = async () => {
-      try {
-        const response = await dispatch(getTemplate({ lang, templateId }));
-        if (response.payload?.userPlan) {
-          // Plan ma'lumotlarini saqlash
-          setUserPlan(response.payload.userPlan);
-        }
-      } catch (error) {
-        if (error.message === "Kunlik test limiti tugadi") {
-          toast.error("Kunlik test limitingiz tugadi!");
-          navigate("/profile");
-        }
-      }
-    };
-
-    fetchTemplate();
-  }, [dispatch, lang, templateId, navigate]);
 
   const handleQuestionClick = (questionIndex) => {
-    // Faqat javob berilgan savollarga o'tish mumkin
-    if (
-      questionResults.hasOwnProperty(questionIndex) ||
-      questionIndex <= currentQuestion
-    ) {
+    // Allow navigation to any question that has been answered or is current/previous
+    const question = currentTemplate.template.questions[questionIndex];
+    const isAnswered = currentSession?.answers?.[question.id];
+
+    if (isAnswered || questionIndex <= currentQuestion) {
       dispatch(setCurrentQuestion(questionIndex));
     }
   };
 
-  const handleFailureModalClose = () => {
-    setShowFailureModal(false);
-    navigate("/templates");
-  };
-
-  const renderQuestionBody = (body) => {
-    return body.map((item, index) => {
-      switch (item.type) {
-        case 1: // Text
-          return (
-            <div
-              key={index}
-              className="text-gray-800 leading-relaxed text-lg mb-4"
-            >
-              {item.value}
-            </div>
-          );
-        case 2: // Image
-          return (
-            <div key={index} className="my-4">
-              <img
-                src={`${baseUrl}/${item.value}`}
-                alt="Question"
-                className="max-w-full h-auto rounded-lg shadow-sm"
-                onError={(e) => {
-                  e.target.style.display = "none";
-                }}
-              />
-            </div>
-          );
-        default:
-          return null;
-      }
-    });
-  };
-
   const getQuestionStatus = (questionIndex) => {
-    if (questionResults.hasOwnProperty(questionIndex)) {
-      return questionResults[questionIndex] ? "correct" : "incorrect";
+    const question = currentTemplate.template.questions[questionIndex];
+    const isAnswered = currentSession?.answers?.[question.id];
+
+    if (isAnswered) {
+      return isAnswered.isCorrect ? "correct" : "incorrect";
     }
     if (questionIndex === currentQuestion) {
       return "current";
@@ -221,9 +182,61 @@ const Test = () => {
       default:
         return (
           baseClass +
-          "bg-white text-gray-500 border-2 border-gray-200 hover:bg-gray-50"
+          "bg-white text-gray-500 border-2 border-gray-200 hover:bg-gray-50 cursor-not-allowed"
         );
     }
+  };
+
+  const renderQuestionBody = (body) => {
+    return body.map((item, index) => {
+      switch (item.type) {
+        case 1: // Text
+          return (
+            <div
+              key={index}
+              className="text-gray-800 leading-relaxed text-lg mb-4"
+            >
+              {item.value}
+            </div>
+          );
+        case 2: // Image
+          return (
+            <div key={index} className="my-4">
+              <img
+                src={`${baseUrl}/${item.value}`}
+                alt="Question"
+                loading="lazy"
+                className="max-w-full h-auto rounded-lg shadow-sm"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
+              />
+            </div>
+          );
+        default:
+          return null;
+      }
+    });
+  };
+
+  const handleFailureModalClose = () => {
+    setShowFailureModal(false);
+    navigate("/templates");
+  };
+
+  const getCompletedQuestions = () => {
+    if (!currentSession?.answers || !currentTemplate) return 0;
+    return Object.keys(currentSession.answers).length;
+  };
+
+  const getTotalQuestions = () => {
+    return currentTemplate?.template?.questions?.length || 0;
+  };
+
+  const canFinishTest = () => {
+    const completed = getCompletedQuestions();
+    const total = getTotalQuestions();
+    return completed === total;
   };
 
   if (isLoading || !currentTemplate) {
@@ -239,6 +252,7 @@ const Test = () => {
 
   const question = currentTemplate.template.questions[currentQuestion];
   const totalQuestions = currentTemplate.template.questions.length;
+  const completedQuestions = getCompletedQuestions();
 
   return (
     <>
@@ -268,15 +282,17 @@ const Test = () => {
                   {totalQuestions}
                 </span>
               </div>
+              <div className="text-sm text-gray-500">
+                Tugallangan: {completedQuestions}/{totalQuestions}
+              </div>
             </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Side - Question and Image */}
+            {/* Left Side - Question */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Question Card */}
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                 <div className="mb-6">
                   <div className="flex items-center space-x-3 mb-4">
@@ -287,6 +303,17 @@ const Test = () => {
                       {currentTemplate.template.questions.length}{" "}
                       {t("questionsCount")}
                     </span>
+                    {isAnswered && (
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          lastResult?.isCorrect
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {lastResult?.isCorrect ? t("correct") : t("incorrect")}
+                      </span>
+                    )}
                   </div>
 
                   <div className="space-y-4">
@@ -294,13 +321,10 @@ const Test = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Questions Pagination */}
             </div>
 
-            {/* Right Side - Answer Options and Submit */}
+            {/* Right Side - Answer Options */}
             <div className="lg:col-span-1 space-y-6">
-              {/* Answer Options */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">
                   {t("selectAnswer")}
@@ -313,19 +337,15 @@ const Test = () => {
 
                     if (showResult) {
                       if (answer.check === 1) {
-                        // Correct answer
                         buttonClass +=
                           "border-green-500 bg-green-50 text-green-700";
                       } else if (answer.id === selectedAnswer) {
-                        // Wrong selected answer
                         buttonClass += "border-red-500 bg-red-50 text-red-700";
                       } else {
-                        // Other answers
                         buttonClass +=
                           "border-gray-200 bg-gray-50 text-gray-500";
                       }
                     } else {
-                      // Before showing result
                       if (selectedAnswer === answer.id) {
                         buttonClass +=
                           "border-blue-500 bg-blue-50 text-blue-700";
@@ -378,65 +398,30 @@ const Test = () => {
                   </button>
                 )}
 
-                {/* Result Message */}
-                {/* {showResult && lastResult && (
-                  <div
-                    className={`p-4 rounded-lg ${
-                      lastResult.isCorrect
-                        ? "bg-green-50 border border-green-200"
-                        : "bg-red-50 border border-red-200"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2 mb-2">
-                      {lastResult.isCorrect ? (
-                        <FiCheck className="text-green-600" size={20} />
-                      ) : (
-                        <FiX className="text-red-600" size={20} />
-                      )}
-                      <span
-                        className={`font-medium ${
-                          lastResult.isCorrect
-                            ? "text-green-700"
-                            : "text-red-700"
-                        }`}
-                      >
-                        {lastResult.isCorrect ? t("correct") : t("incorrect")}
-                      </span>
-                    </div>
-
-                    {!lastResult.isCorrect && (
-                      <p className="text-sm text-red-600 mb-2">
-                        {t("correctAnswer")}: {lastResult.correctAnswer.text}
-                      </p>
-                    )}
-
-                    {lastResult.explanation && (
-                      <p className="text-sm text-gray-600">
-                        <strong>{t("explanation")}:</strong>{" "}
-                        {lastResult.explanation}
-                      </p>
-                    )}
-                  </div>
-                )} */}
-
-                {/* Test Completion or Next Question */}
-                {isAnswered && mistakeCount < 3 && (
+                {/* Navigation */}
+                {isAnswered && (
                   <div className="mt-4 space-y-3">
                     {currentQuestion === totalQuestions - 1 ? (
-                      <button
-                        onClick={() =>
-                          navigate("/templates", {
-                            state: {
-                              message: t("testFinished"),
-                              results: userAnswers,
-                            },
-                          })
-                        }
-                        className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all"
-                      >
-                        <FiFlag size={18} />
-                        <span>{t("finishTest")}</span>
-                      </button>
+                      canFinishTest() ? (
+                        <button
+                          onClick={() =>
+                            navigate("/templates", {
+                              state: {
+                                message: t("testFinished"),
+                                results: currentSession?.answers,
+                              },
+                            })
+                          }
+                          className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all"
+                        >
+                          <FiFlag size={18} />
+                          <span>{t("finishTest")}</span>
+                        </button>
+                      ) : (
+                        <div className="text-center text-sm text-gray-600">
+                          Testni tugatish uchun barcha savollarga javob bering
+                        </div>
+                      )
                     ) : (
                       <button
                         onClick={() =>
@@ -452,11 +437,13 @@ const Test = () => {
               </div>
             </div>
           </div>
+
+          {/* Questions Navigation */}
           <div className="bg-white mt-5 rounded-2xl p-6 shadow-sm border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               {t("questionsNavigation")}
             </h3>
-            <div className="flex gap-3 items-center justify-center">
+            <div className="flex gap-3 items-center justify-center flex-wrap">
               {currentTemplate.template.questions.map((_, index) => (
                 <button
                   key={index}
@@ -464,13 +451,17 @@ const Test = () => {
                   className={getQuestionButtonClass(index)}
                   disabled={
                     index > currentQuestion &&
-                    !questionResults.hasOwnProperty(index)
+                    !currentSession?.answers?.[
+                      currentTemplate.template.questions[index].id
+                    ]
                   }
                 >
                   {index + 1}
                 </button>
               ))}
             </div>
+
+            {/* Legend */}
           </div>
         </div>
       </div>

@@ -26,6 +26,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { Link } from "react-router-dom";
 
 const AdminDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -470,9 +471,10 @@ const AdminDashboard = () => {
             <div className="space-y-4">
               {dashboardData.topUsers && dashboardData.topUsers.length > 0 ? (
                 dashboardData.topUsers.slice(0, 5).map((user, index) => (
-                  <div
+                  <Link
                     key={user._id}
-                    className="flex items-center justify-between"
+                    to={`/admin/students/${user._id}`}
+                    className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
                   >
                     <div className="flex items-center">
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
@@ -498,8 +500,9 @@ const AdminDashboard = () => {
                       <p className="text-sm font-medium text-green-600">
                         {getSuccessRate(user.totalCorrect, user.totalTests)}%
                       </p>
+                      <FiEye className="text-gray-400 ml-2" size={14} />
                     </div>
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <div className="text-center text-gray-500 py-8">
