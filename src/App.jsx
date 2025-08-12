@@ -26,6 +26,7 @@ import Mistakes from "./pages/Mistakes";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Plans from "./pages/Plans";
 import AdminDashboard from "./pages/AdminDashboard";
 import StudentDetails from "./pages/StudentDetails";
 
@@ -39,12 +40,10 @@ const AppContent = () => {
   );
 
   useEffect(() => {
-    // Token mavjudligini tekshirish
     dispatch(checkToken());
     dispatch(checkAdminToken());
   }, [dispatch]);
 
-  // Login redirect logic
   const getLoginRedirect = () => {
     if (adminAuth && admin) {
       return "/admin/dashboard";
@@ -71,7 +70,7 @@ const AppContent = () => {
       />
 
       <Routes>
-        {/* Public routes */}
+        {/* Auth routes - no layout */}
         <Route
           path="/login"
           element={
@@ -83,7 +82,10 @@ const AppContent = () => {
           element={userAuth ? <Navigate to="/" replace /> : <Register />}
         />
 
-        {/* Admin routes */}
+        {/* Plans page - no layout */}
+        <Route path="/plans" element={<Plans />} />
+
+        {/* Admin routes - no layout */}
         <Route
           path="/admin/dashboard"
           element={
@@ -101,31 +103,54 @@ const AppContent = () => {
           }
         />
 
-        {/* Client routes */}
+        {/* Test page - no layout, auth required */}
+        <Route path="/test/:lang/:templateId" element={<Test />} />
+
+        {/* Home page - with layout */}
         <Route
           path="/"
           element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
+            <Layout>
+              <Home />
+            </Layout>
           }
-        >
-          <Route index element={<Home />} />
-          <Route path="templates" element={<Templates />} />
-          <Route path="mistakes" element={<Mistakes />} />
-          <Route path="profile" element={<Profile />} />
-        </Route>
+        />
 
+        {/* Templates - with layout, auth required */}
         <Route
-          path="/test/:lang/:templateId"
+          path="/templates"
+          element={
+            <Layout>
+              <Templates />
+            </Layout>
+          }
+        />
+
+        {/* Mistakes - with layout, auth required */}
+        <Route
+          path="/mistakes"
           element={
             <ProtectedRoute>
-              <Test />
+              <Layout>
+                <Mistakes />
+              </Layout>
             </ProtectedRoute>
           }
         />
 
-        {/* Catch all route */}
+        {/* Profile - with layout, auth required */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Profile />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

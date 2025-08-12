@@ -45,65 +45,17 @@ export const getTemplate = createAsyncThunk(
   }
 );
 
-// Check answer with session persistence
+// Check answer WITHOUT session persistence (for regular tests)
 export const checkAnswer = createAsyncThunk(
   "templates/checkAnswer",
-  async (answerData, { rejectWithValue, getState, dispatch }) => {
+  async (answerData, { rejectWithValue }) => {
     try {
       const response = await api.post("/templates/check-answer", answerData);
-      const result = response.data.data;
-
-      // Save to session storage
-      const sessionKey = getTestSessionKey(
-        answerData.templateLang,
-        answerData.templateId
-      );
-      const state = getState();
-      const currentSession = state.templates.testSessions[sessionKey] || {};
-
-      const updatedSession = {
-        ...currentSession,
-        lang: answerData.templateLang,
-        templateId: answerData.templateId,
-        answers: {
-          ...currentSession.answers,
-          [answerData.questionId]: {
-            selectedAnswer: answerData.selectedAnswer,
-            isCorrect: result.isCorrect,
-            correctAnswer: result.correctAnswer,
-            timestamp: new Date().toISOString(),
-          },
-        },
-        lastUpdate: new Date().toISOString(),
-      };
-
-      // Update session in store
-      dispatch(updateTestSession({ sessionKey, session: updatedSession }));
-
-      return result;
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to check answer"
       );
-    }
-  }
-);
-
-// Load test session
-export const loadTestSession = createAsyncThunk(
-  "templates/loadTestSession",
-  async ({ lang, templateId }, { rejectWithValue }) => {
-    try {
-      const sessionKey = getTestSessionKey(lang, templateId);
-      const savedSession = localStorage.getItem(sessionKey);
-
-      if (savedSession) {
-        return { sessionKey, session: JSON.parse(savedSession) };
-      }
-
-      return { sessionKey, session: null };
-    } catch (error) {
-      return rejectWithValue("Failed to load test session");
     }
   }
 );
@@ -121,8 +73,9 @@ const templateSlice = createSlice({
     isLoading: false,
     error: null,
     testResults: [],
-    testSessions: {}, // Test sessions for different templates
-    currentSessionKey: null,
+    // Session-based test state (temporary)
+    currentTestSession: null,
+    sessionAnswers: {}, // questionId -> answer data (temporary)
   },
   reducers: {
     setCurrentQuestion: (state, action) => {
@@ -135,7 +88,39 @@ const templateSlice = createSlice({
       state.mistakeCount = 0;
       state.testResults = [];
       state.error = null;
-      // Don't reset currentTemplate and sessions
+      state.currentTestSession = null;
+      state.sessionAnswers = {};
+    },
+    // Initialize test session (temporary, not saved)
+    initTestSession: (state, action) => {
+      const { lang, templateId } = action.payload;
+      state.currentTestSession = {
+        lang,
+        templateId,
+        startTime: new Date().toISOString(),
+      };
+      state.sessionAnswers = {};
+      state.currentQuestion = 0;
+      state.questionResults = {};
+    },
+    // Save answer to temporary session
+    saveSessionAnswer: (state, action) => {
+      const { questionId, selectedAnswer, isCorrect, correctAnswer } =
+        action.payload;
+      state.sessionAnswers[questionId] = {
+        selectedAnswer,
+        isCorrect,
+        correctAnswer,
+        timestamp: new Date().toISOString(),
+      };
+      state.questionResults[questionId] = isCorrect;
+    },
+    // Clear session on test exit
+    clearTestSession: (state) => {
+      state.currentTestSession = null;
+      state.sessionAnswers = {};
+      state.questionResults = {};
+      state.currentQuestion = 0;
     },
     addUserAnswer: (state, action) => {
       state.userAnswers.push(action.payload);
@@ -155,45 +140,6 @@ const templateSlice = createSlice({
     },
     clearTemplatesCache: (state) => {
       state.templatesCache = {};
-    },
-    // Test session management
-    updateTestSession: (state, action) => {
-      const { sessionKey, session } = action.payload;
-      state.testSessions[sessionKey] = session;
-      state.currentSessionKey = sessionKey;
-
-      // Save to localStorage
-      try {
-        localStorage.setItem(sessionKey, JSON.stringify(session));
-      } catch (error) {
-        console.warn("Failed to save test session to localStorage:", error);
-      }
-    },
-    setCurrentSession: (state, action) => {
-      const { sessionKey } = action.payload;
-      state.currentSessionKey = sessionKey;
-    },
-    clearTestSession: (state, action) => {
-      const { sessionKey } = action.payload;
-      delete state.testSessions[sessionKey];
-
-      // Remove from localStorage
-      try {
-        localStorage.removeItem(sessionKey);
-      } catch (error) {
-        console.warn("Failed to remove test session from localStorage:", error);
-      }
-    },
-    // Load question results from session
-    loadQuestionResults: (state, action) => {
-      const { session } = action.payload;
-      if (session && session.answers) {
-        state.questionResults = {};
-        Object.keys(session.answers).forEach((questionId) => {
-          const answer = session.answers[questionId];
-          state.questionResults[questionId] = answer.isCorrect;
-        });
-      }
     },
   },
   extraReducers: (builder) => {
@@ -244,23 +190,6 @@ const templateSlice = createSlice({
       })
       .addCase(checkAnswer.rejected, (state, action) => {
         state.error = action.payload;
-      })
-      // Load test session
-      .addCase(loadTestSession.fulfilled, (state, action) => {
-        const { sessionKey, session } = action.payload;
-        if (session) {
-          state.testSessions[sessionKey] = session;
-          state.currentSessionKey = sessionKey;
-
-          // Load question results
-          if (session.answers) {
-            state.questionResults = {};
-            Object.keys(session.answers).forEach((questionId) => {
-              const answer = session.answers[questionId];
-              state.questionResults[questionId] = answer.isCorrect;
-            });
-          }
-        }
       });
   },
 });
@@ -268,16 +197,15 @@ const templateSlice = createSlice({
 export const {
   setCurrentQuestion,
   resetTest,
+  initTestSession,
+  saveSessionAnswer,
+  clearTestSession,
   addUserAnswer,
   setQuestionResult,
   incrementMistakeCount,
   addTestResult,
   clearError,
   clearTemplatesCache,
-  updateTestSession,
-  setCurrentSession,
-  clearTestSession,
-  loadQuestionResults,
 } = templateSlice.actions;
 
 export default templateSlice.reducer;

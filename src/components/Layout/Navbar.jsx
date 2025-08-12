@@ -12,6 +12,7 @@ import {
   FiMenu,
   FiX,
   FiCrop,
+  FiStar,
 } from "react-icons/fi";
 import { logout } from "../../store/slices/authSlice";
 import api from "../../utils/api";
@@ -21,7 +22,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [userPlan, setUserPlan] = useState(null);
@@ -33,7 +34,7 @@ const Navbar = () => {
     { code: "kaa", name: "Qaraqalpaqsha", flag: "🇰aa" },
   ];
 
-  // User plan ma'lumotlarini olish
+  // User plan ma'lumotlarini olish (faqat authenticated foydalanuvchilar uchun)
   useEffect(() => {
     const fetchUserPlan = async () => {
       try {
@@ -44,38 +45,17 @@ const Navbar = () => {
       }
     };
 
-    if (user) {
+    if (user && isAuthenticated) {
       fetchUserPlan();
     }
-  }, [user]);
+  }, [user, isAuthenticated]);
 
-  // Base navigation items
   const baseNavItems = [
     { path: "/", label: t("home"), icon: FiHome },
     { path: "/templates", label: t("templates"), icon: FiFileText },
     { path: "/mistakes", label: t("mistakes"), icon: FiAlertCircle },
     { path: "/profile", label: t("profile"), icon: FiUser },
   ];
-
-  // Exam item faqat PRO plan uchun
-  const examItem = {
-    path: "/exam",
-    label: "Imtihon",
-    icon: FiCrop,
-    isPro: true,
-  };
-
-  // Final nav items - PRO bo'lsa exam qo'shish
-  const navItems =
-    user?.plan === "pro"
-      ? [
-          baseNavItems[0], // Home
-          baseNavItems[1], // Templates
-          examItem, // Exam (PRO only)
-          baseNavItems[2], // Mistakes
-          baseNavItems[3], // Profile
-        ]
-      : baseNavItems;
 
   const handleLogout = () => {
     dispatch(logout());
@@ -91,6 +71,74 @@ const Navbar = () => {
   const isExpired =
     user?.planExpiryDate && new Date(user.planExpiryDate) < new Date();
 
+  const handlePlanClick = () => {
+    if (isAuthenticated) {
+      navigate("/plans");
+    } else {
+      navigate("/login");
+    }
+  };
+
+  // Agar foydalanuvchi ro'yxatdan o'tmagan bo'lsa - simple navbar
+  if (!isAuthenticated) {
+    return (
+      <nav className="bg-white shadow-lg border-b border-gray-200">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">A</span>
+              </div>
+              <span className="text-xl font-bold text-gray-800">AvtoTest</span>
+            </Link>
+
+            {/* Language Selector */}
+            <div className="relative">
+              <button
+                onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors"
+              >
+                <FiGlobe size={18} />
+                <span className="text-sm font-medium">
+                  {languages.find((lang) => lang.code === i18n.language)?.flag}
+                </span>
+              </button>
+
+              {isLangMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => changeLanguage(lang.code)}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center space-x-3 ${
+                        i18n.language === lang.code
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      <span>{lang.flag}</span>
+                      <span>{lang.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Close language dropdown when clicking outside */}
+        {isLangMenuOpen && (
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsLangMenuOpen(false)}
+          />
+        )}
+      </nav>
+    );
+  }
+
+  // Authenticated foydalanuvchilar uchun to'liq navbar
   return (
     <nav className="bg-white shadow-lg border-b border-gray-200">
       <div className="container mx-auto px-4">
@@ -110,7 +158,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navItems.map(({ path, label, icon: Icon, isPro: isProItem }) => (
+            {baseNavItems.map(({ path, label, icon: Icon }) => (
               <Link
                 key={path}
                 to={path}
@@ -118,23 +166,42 @@ const Navbar = () => {
                   location.pathname === path
                     ? "bg-blue-100 text-blue-700 shadow-sm"
                     : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
-                } ${isProItem ? "relative" : ""}`}
+                }`}
               >
                 <Icon size={18} />
                 <span className="font-medium">{label}</span>
-                {isProItem && (
-                  <FiCrop size={14} className="text-yellow-600 ml-1" />
-                )}
               </Link>
             ))}
           </div>
 
           {/* Right side */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Plan Status Button */}
+            <button
+              onClick={handlePlanClick}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                isPro && !isExpired
+                  ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:shadow-lg"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {isPro && !isExpired ? (
+                <>
+                  <FiCrop size={16} />
+                  <span>PRO</span>
+                </>
+              ) : (
+                <>
+                  <FiStar size={16} />
+                  <span>FREE</span>
+                </>
+              )}
+            </button>
+
             {/* Plan info for FREE users */}
             {user?.plan === "free" && userPlan && (
               <div className="text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                Bugun: {userPlan.dailyUsed}/20
+                {userPlan.lifetimeUsed}/20
               </div>
             )}
 
@@ -177,9 +244,6 @@ const Navbar = () => {
                   <p className="text-sm font-medium text-gray-800">
                     {user?.firstname} {user?.lastname}
                   </p>
-                  {isPro && !isExpired && (
-                    <FiCrop className="text-yellow-600" size={14} />
-                  )}
                 </div>
                 <p className="text-xs text-gray-500">{user?.phone}</p>
               </div>
@@ -195,19 +259,43 @@ const Navbar = () => {
           </div>
 
           {/* Mobile menu button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50"
-          >
-            {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-          </button>
+          <div className="md:hidden flex items-center space-x-2">
+            {/* Mobile Plan Status */}
+            <button
+              onClick={handlePlanClick}
+              className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${
+                isPro && !isExpired
+                  ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {isPro && !isExpired ? (
+                <>
+                  <FiCrop size={14} />
+                  <span>PRO</span>
+                </>
+              ) : (
+                <>
+                  <FiStar size={14} />
+                  <span>FREE</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50"
+            >
+              {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <div className="space-y-2">
-              {navItems.map(({ path, label, icon: Icon, isPro: isProItem }) => (
+              {baseNavItems.map(({ path, label, icon: Icon }) => (
                 <Link
                   key={path}
                   to={path}
@@ -220,9 +308,6 @@ const Navbar = () => {
                 >
                   <Icon size={20} />
                   <span className="font-medium">{label}</span>
-                  {isProItem && (
-                    <FiCrop size={14} className="text-yellow-600 ml-auto" />
-                  )}
                 </Link>
               ))}
 
@@ -231,7 +316,7 @@ const Navbar = () => {
                 {user?.plan === "free" && userPlan && (
                   <div className="px-3 py-2 mb-2">
                     <div className="text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full inline-block">
-                      Bugungi testlar: {userPlan.dailyUsed}/20
+                      Ishlatilgan: {userPlan.lifetimeUsed}/20
                     </div>
                   </div>
                 )}
@@ -241,9 +326,6 @@ const Navbar = () => {
                     <p className="text-sm font-medium text-gray-800">
                       {user?.firstname} {user?.lastname}
                     </p>
-                    {isPro && !isExpired && (
-                      <FiCrop className="text-yellow-600" size={14} />
-                    )}
                   </div>
                   <p className="text-xs text-gray-500">{user?.phone}</p>
                 </div>
