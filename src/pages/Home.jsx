@@ -19,13 +19,19 @@ import {
   FiStar,
   FiCrop,
   FiCreditCard,
+  FiCode,
 } from "react-icons/fi";
+import api from "../utils/api";
+import toast from "react-hot-toast";
 
 const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [selectedPlan, setSelectedPlan] = useState("free");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentData, setPaymentData] = useState(null);
+  const [loadingPayment, setLoadingPayment] = useState(false);
 
   const cards = [
     {
@@ -75,19 +81,43 @@ const Home = () => {
     },
   ];
 
+  const createPayment = async () => {
+    try {
+      setLoadingPayment(true);
+      const response = await api.post("/payments/create-payment");
+      setPaymentData(response.data.data);
+      setShowPaymentModal(true);
+    } catch (error) {
+      toast.error(error.response?.data?.message || t("error"));
+    } finally {
+      setLoadingPayment(false);
+    }
+  };
+
+  const checkPaymentStatus = async (paymentId) => {
+    try {
+      const response = await api.get(`/payments/payment-status/${paymentId}`);
+      if (response.data.data.status === "paid") {
+        toast.success(t("paymentSuccessful"));
+        setShowPaymentModal(false);
+      } else {
+        toast.error(t("paymentFailed"));
+      }
+    } catch (error) {
+      toast.error(t("error"));
+    }
+  };
+
   const handlePlanAction = (planType) => {
     if (!isAuthenticated) {
-      // Register sahifasiga yo'naltirish
       navigate("/register");
       return;
     }
 
     if (planType === "free") {
-      // Templates sahifasiga o'tish
       navigate("/templates");
     } else if (planType === "pro") {
-      // To'lov sahifasiga o'tish
-      navigate("/profile"); // Profile da to'lov qismi bor
+      createPayment();
     }
   };
 
@@ -112,11 +142,9 @@ const Home = () => {
       <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-3xl p-8">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-800 mb-4">
-            Test Planlarini Tanlang
+            {t("choosePlan")}
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            O'zingizga mos plan tanlang va test yechishni boshlang
-          </p>
+          <p className="text-gray-600 max-w-2xl mx-auto">{t("selectPlan")}</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -134,32 +162,35 @@ const Home = () => {
                 <FiStar className="text-gray-600" size={32} />
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                FREE Plan
+                {t("freePlan")}
               </h3>
               <div className="text-3xl font-bold text-gray-800 mb-2">
-                0 <span className="text-lg text-gray-500">so'm</span>
+                0{" "}
+                <span className="text-lg text-gray-500">
+                  {t("pricePerMonth")}
+                </span>
               </div>
-              <p className="text-gray-600">
-                Boshlang'ich foydalanuvchilar uchun
-              </p>
+              <span>{t("forBeginners")}</span>
             </div>
 
             <div className="space-y-4 mb-8">
               <div className="flex items-center space-x-3">
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
-                <span className="text-gray-700">20 ta test limiti</span>
+                <span className="text-gray-700">
+                  {t("testLimit", { count: 20 })}
+                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
-                <span className="text-gray-700">Barcha tillar</span>
+                <span className="text-gray-700">{t("allLanguages")}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
-                <span className="text-gray-700">Xatolar tahlili</span>
+                <span className="text-gray-700">{t("errorAnalysis")}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
-                <span className="text-gray-700">Statistika</span>
+                <span className="text-gray-700">{t("statistics")}</span>
               </div>
             </div>
 
@@ -169,7 +200,7 @@ const Home = () => {
             >
               <FiPlay size={18} />
               <span>
-                {isAuthenticated ? "Testni Boshlash" : "Ro'yxatdan O'tish"}
+                {isAuthenticated ? t("startTest") : t("signUpRegister")}
               </span>
             </button>
           </div>
@@ -183,10 +214,9 @@ const Home = () => {
             }`}
             onClick={() => setSelectedPlan("pro")}
           >
-            {/* Popular Badge */}
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
               <span className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                Mashhur
+                {t("popular")}
               </span>
             </div>
 
@@ -195,40 +225,46 @@ const Home = () => {
                 <FiCrop className="text-yellow-600" size={32} />
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                PRO Plan
+                {t("proPlan")}
               </h3>
               <div className="text-3xl font-bold text-yellow-600 mb-2">
-                35,000 <span className="text-lg text-gray-500">so'm/oy</span>
+                19,999{" "}
+                <span className="text-lg text-gray-500 line-through">
+                  40,000
+                </span>{" "}
+                <span className="text-lg text-gray-500">
+                  {t("pricePerMonth")}
+                </span>
               </div>
               <p className="text-gray-600">
-                Professional foydalanuvchilar uchun
+                <span>{t("forProfessionals")}</span>
+                <br />
+                <span className="text-sm text-red-500">
+                  Chegirma avgust oyi oxirigacha amal qiladi
+                </span>
               </p>
             </div>
 
             <div className="space-y-4 mb-8">
               <div className="flex items-center space-x-3">
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
-                <span className="text-gray-700 font-medium">
-                  Cheksiz testlar
-                </span>
+                <span>{t("unlimitedTests")}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
-                <span className="text-gray-700">Barcha tillar</span>
+                <span>{t("allLanguages")}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
-                <span className="text-gray-700">Imtihon rejimi</span>
+                <span>{t("examMode")}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
-                <span className="text-gray-700">Batafsil tahlil</span>
+                <span>{t("detailedAnalysis")}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
-                <span className="text-gray-700">
-                  Premium qo'llab-quvvatlash
-                </span>
+                <span>{t("premiumSupport")}</span>
               </div>
             </div>
 
@@ -238,14 +274,14 @@ const Home = () => {
             >
               <FiCreditCard size={18} />
               <span>
-                {isAuthenticated ? "PRO ga O'tish" : "Ro'yxatdan O'tish"}
+                {isAuthenticated ? t("upgradeProPlan") : t("signUpRegister")}
               </span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions - FAQAT authenticated foydalanuvchilar uchun */}
+      {/* Quick Actions */}
       {isAuthenticated && (
         <div className="grid md:grid-cols-3 gap-6">
           {cards.map((card, index) => {
@@ -320,6 +356,79 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && paymentData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full space-y-6">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiCrop className="text-yellow-600" size={40} />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                {t("upgradeProPlan")}
+              </h2>
+              <p className="text-gray-600">19,999 {t("pricePerMonth")}</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium text-gray-800 mb-2">
+                  {t("proFeatures")}
+                </h4>
+                <ul className="space-y-1 text-sm text-gray-600">
+                  <li className="flex items-center space-x-2">
+                    <FiCheck className="text-green-500" size={14} />
+                    <span>{t("unlimitedTests")}</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <FiCheck className="text-green-500" size={14} />
+                    <span>{t("examMode")}</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <FiCheck className="text-green-500" size={14} />
+                    <span>{t("validityPeriod", { count: 1 })}</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <a
+                  href={paymentData.clickUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <FiCreditCard size={18} />
+                  <span>{t("payViaClick")}</span>
+                </a>
+
+                <button
+                  onClick={() => window.open(paymentData.qrCode, "_blank")}
+                  className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <FiCode size={18} />
+                  <span>{t("payViaQR")}</span>
+                </button>
+
+                <button
+                  onClick={() => checkPaymentStatus(paymentData.paymentId)}
+                  className="w-full bg-gray-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                >
+                  {t("checkPaymentStatus")}
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="w-full border border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              >
+                {t("cancel")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

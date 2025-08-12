@@ -16,6 +16,7 @@ import {
 } from "react-icons/fi";
 import { logout } from "../../store/slices/authSlice";
 import api from "../../utils/api";
+import { Logo } from "../../../public";
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
@@ -87,8 +88,10 @@ const Navbar = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">A</span>
+              <div className="w-8 h-8  rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">
+                  <img src={Logo} alt="" />
+                </span>
               </div>
               <span className="text-xl font-bold text-gray-800">AvtoTest</span>
             </Link>
@@ -145,8 +148,10 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">A</span>
+            <div className="w-8 h-8  rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">
+                <img src={Logo} alt="" />
+              </span>
             </div>
             <span className="text-xl font-bold text-gray-800">AvtoTest</span>
             {isPro && !isExpired && (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import {
   FiCheck,
@@ -12,11 +13,14 @@ import {
   FiZap,
   FiShield,
   FiTrendingUp,
+  FiCode,
+  FiExternalLink,
 } from "react-icons/fi";
 import api from "../utils/api";
 import toast from "react-hot-toast";
 
 const Plans = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [userPlan, setUserPlan] = useState(null);
@@ -44,9 +48,22 @@ const Plans = () => {
       setPaymentData(response.data.data);
       setShowPaymentModal(true);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Xatolik yuz berdi");
+      toast.error(error.response?.data?.message || t("error"));
     } finally {
       setLoadingPayment(false);
+    }
+  };
+
+  const checkPaymentStatus = async (paymentId) => {
+    try {
+      const response = await api.get(`/payments/payment-status/${paymentId}`);
+      if (response.data.data.status === "paid") {
+        toast.success(t("paymentSuccessful"));
+        setShowPaymentModal(false);
+        fetchUserPlan();
+      }
+    } catch (error) {
+      console.error("Payment status check error:", error);
     }
   };
 
@@ -55,23 +72,23 @@ const Plans = () => {
     user?.planExpiryDate && new Date(user.planExpiryDate) < new Date();
 
   const freeFeatures = [
-    { text: "20 ta test limiti", included: true },
-    { text: "Barcha tillar", included: true },
-    { text: "Xatolar tahlili", included: true },
-    { text: "Statistika", included: true },
-    { text: "Cheksiz testlar", included: false },
-    { text: "Imtihon rejimi", included: false },
-    { text: "Premium qo'llab-quvvatlash", included: false },
+    { text: t("testLimit", { count: 20 }), included: true },
+    { text: t("allLanguages"), included: true },
+    { text: t("errorAnalysis"), included: true },
+    { text: t("statistics"), included: true },
+    { text: t("unlimitedTests"), included: false },
+    { text: t("examMode"), included: false },
+    { text: t("premiumSupport"), included: false },
   ];
 
   const proFeatures = [
-    { text: "Cheksiz testlar", included: true },
-    { text: "Barcha tillar", included: true },
-    { text: "Imtihon rejimi", included: true },
-    { text: "Batafsil tahlil", included: true },
-    { text: "Premium qo'llab-quvvatlash", included: true },
-    { text: "Xatolar tahlili", included: true },
-    { text: "Statistika", included: true },
+    { text: t("unlimitedTests"), included: true },
+    { text: t("allLanguages"), included: true },
+    { text: t("examMode"), included: true },
+    { text: t("detailedAnalysis"), included: true },
+    { text: t("premiumSupport"), included: true },
+    { text: t("errorAnalysis"), included: true },
+    { text: t("statistics"), included: true },
   ];
 
   return (
@@ -84,14 +101,14 @@ const Plans = () => {
             className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors mb-6"
           >
             <FiArrowLeft size={20} />
-            <span>Bosh sahifaga qaytish</span>
+            <span>{t("backToHome")}</span>
           </button>
 
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            Test Planlarini Tanlang
+            {t("choosePlan")}
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            O'zingizga mos plan tanlang va test yechishni boshlang
+            {t("selectPlan")}
           </p>
         </div>
 
@@ -113,20 +130,21 @@ const Plans = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800">
-                    Joriy plan: {isPro && !isExpired ? "PRO" : "FREE"}
+                    {t("currentPlan")}:{" "}
+                    {isPro && !isExpired ? t("proPlan") : t("freePlan")}
                   </h3>
                   <p className="text-gray-600">
                     {userPlan && user.plan === "free"
-                      ? `Ishlatilgan: ${userPlan.lifetimeUsed}/20`
+                      ? t("usedTests", { count: userPlan.lifetimeUsed })
                       : isPro && !isExpired
-                      ? "Cheksiz testlar"
-                      : "20 ta test limiti"}
+                      ? t("unlimitedTests")
+                      : t("testLimit", { count: 20 })}
                   </p>
                 </div>
               </div>
               {isPro && !isExpired && user?.planExpiryDate && (
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">Tugash sanasi:</p>
+                  <p className="text-sm text-gray-600">{t("expiryDate")}</p>
                   <p className="font-medium text-gray-800">
                     {new Date(user.planExpiryDate).toLocaleDateString("uz-UZ")}
                   </p>
@@ -145,14 +163,15 @@ const Plans = () => {
                 <FiStar className="text-gray-600" size={36} />
               </div>
               <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                FREE Plan
+                {t("freePlan")}
               </h2>
               <div className="text-4xl font-bold text-gray-800 mb-2">
-                0 <span className="text-xl text-gray-500">so'm</span>
+                0{" "}
+                <span className="text-xl text-gray-500">
+                  {t("pricePerMonth")}
+                </span>
               </div>
-              <p className="text-gray-600">
-                Boshlang'ich foydalanuvchilar uchun
-              </p>
+              <p className="text-gray-600">{t("forBeginners")}</p>
             </div>
 
             <div className="space-y-4 mb-8">
@@ -182,7 +201,7 @@ const Plans = () => {
               className="w-full bg-gray-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center justify-center space-x-2"
             >
               <FiPlay size={18} />
-              <span>Testni Boshlash</span>
+              <span>{t("startTest")}</span>
             </button>
           </div>
 
@@ -191,7 +210,7 @@ const Plans = () => {
             {/* Popular Badge */}
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
               <span className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-2 rounded-full text-sm font-medium">
-                Mashhur
+                {t("popular")}
               </span>
             </div>
 
@@ -200,13 +219,23 @@ const Plans = () => {
                 <FiCrop className="text-yellow-600" size={36} />
               </div>
               <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                PRO Plan
+                {t("proPlan")}
               </h2>
               <div className="text-4xl font-bold text-yellow-600 mb-2">
-                35,000 <span className="text-xl text-gray-500">so'm/oy</span>
+                19,999{" "}
+                <span className="text-xl text-gray-500 line-through">
+                  40,000
+                </span>{" "}
+                <span className="text-xl text-gray-500">
+                  {t("pricePerMonth")}
+                </span>
               </div>
               <p className="text-gray-600">
-                Professional foydalanuvchilar uchun
+                <span>{t("forProfessionals")}</span>
+                <br />
+                <span className="text-sm text-red-500">
+                  Chegirma avgust oyi oxirigacha amal qiladi
+                </span>
               </p>
             </div>
 
@@ -221,7 +250,7 @@ const Plans = () => {
 
             {isPro && !isExpired ? (
               <div className="w-full bg-green-100 text-green-700 py-3 px-6 rounded-lg font-medium text-center">
-                Faol Plan
+                {t("activePlan")}
               </div>
             ) : (
               <button
@@ -231,7 +260,7 @@ const Plans = () => {
               >
                 <FiCreditCard size={18} />
                 <span>
-                  {loadingPayment ? "Yuklanmoqda..." : "PRO ga O'tish"}
+                  {loadingPayment ? t("loading") : t("upgradeProPlan")}
                 </span>
               </button>
             )}
@@ -241,7 +270,7 @@ const Plans = () => {
         {/* Features Comparison Table */}
         <div className="mt-16">
           <h3 className="text-2xl font-bold text-gray-800 text-center mb-8">
-            Planlar Taqqoslash
+            {t("plansComparison")}
           </h3>
 
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -250,28 +279,32 @@ const Plans = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="text-left py-4 px-6 font-semibold text-gray-800">
-                      Xususiyatlar
+                      {t("features")}
                     </th>
                     <th className="text-center py-4 px-6 font-semibold text-gray-600">
-                      FREE
+                      {t("freePlan")}
                     </th>
                     <th className="text-center py-4 px-6 font-semibold text-yellow-600">
-                      PRO
+                      {t("proPlan")}
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr>
-                    <td className="py-4 px-6 text-gray-700">Test limiti</td>
+                    <td className="py-4 px-6 text-gray-700">
+                      {t("testLimit")}
+                    </td>
                     <td className="py-4 px-6 text-center text-gray-600">
-                      20 ta
+                      {t("testLimit", { count: 20 })}
                     </td>
                     <td className="py-4 px-6 text-center text-yellow-600 font-medium">
-                      Cheksiz
+                      {t("unlimitedTests")}
                     </td>
                   </tr>
                   <tr className="bg-gray-50">
-                    <td className="py-4 px-6 text-gray-700">Barcha tillar</td>
+                    <td className="py-4 px-6 text-gray-700">
+                      {t("allLanguages")}
+                    </td>
                     <td className="py-4 px-6 text-center">
                       <FiCheck className="text-green-500 mx-auto" size={20} />
                     </td>
@@ -280,7 +313,7 @@ const Plans = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-4 px-6 text-gray-700">Imtihon rejimi</td>
+                    <td className="py-4 px-6 text-gray-700">{t("examMode")}</td>
                     <td className="py-4 px-6 text-center">
                       <FiX className="text-red-400 mx-auto" size={20} />
                     </td>
@@ -289,7 +322,9 @@ const Plans = () => {
                     </td>
                   </tr>
                   <tr className="bg-gray-50">
-                    <td className="py-4 px-6 text-gray-700">Statistika</td>
+                    <td className="py-4 px-6 text-gray-700">
+                      {t("statistics")}
+                    </td>
                     <td className="py-4 px-6 text-center">
                       <FiCheck className="text-green-500 mx-auto" size={20} />
                     </td>
@@ -298,7 +333,9 @@ const Plans = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-4 px-6 text-gray-700">Xatolar tahlili</td>
+                    <td className="py-4 px-6 text-gray-700">
+                      {t("errorAnalysis")}
+                    </td>
                     <td className="py-4 px-6 text-center">
                       <FiCheck className="text-green-500 mx-auto" size={20} />
                     </td>
@@ -308,7 +345,7 @@ const Plans = () => {
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="py-4 px-6 text-gray-700">
-                      Premium qo'llab-quvvatlash
+                      {t("premiumSupport")}
                     </td>
                     <td className="py-4 px-6 text-center">
                       <FiX className="text-red-400 mx-auto" size={20} />
@@ -330,11 +367,9 @@ const Plans = () => {
               <FiZap className="text-blue-600" size={32} />
             </div>
             <h4 className="text-xl font-semibold text-gray-800 mb-2">
-              Tez Boshlash
+              {t("quickStart")}
             </h4>
-            <p className="text-gray-600">
-              Bir necha daqiqada ro'yxatdan o'ting va testlarni boshlang
-            </p>
+            <p className="text-gray-600">{t("quickStartDesc")}</p>
           </div>
 
           <div className="text-center p-6">
@@ -342,11 +377,9 @@ const Plans = () => {
               <FiShield className="text-green-600" size={32} />
             </div>
             <h4 className="text-xl font-semibold text-gray-800 mb-2">
-              Xavfsiz To'lov
+              {t("securePayment")}
             </h4>
-            <p className="text-gray-600">
-              Barcha to'lovlar xavfsiz va himoyalangan
-            </p>
+            <p className="text-gray-600">{t("securePaymentDesc")}</p>
           </div>
 
           <div className="text-center p-6">
@@ -354,72 +387,85 @@ const Plans = () => {
               <FiTrendingUp className="text-purple-600" size={32} />
             </div>
             <h4 className="text-xl font-semibold text-gray-800 mb-2">
-              Taraqqiyot Kuzatuvi
+              {t("progressTracking")}
             </h4>
-            <p className="text-gray-600">
-              O'z natijalaringizni kuzatib boring va tahlil qiling
-            </p>
+            <p className="text-gray-600">{t("progressTrackingDesc")}</p>
           </div>
         </div>
-      </div>
 
-      {/* Payment Modal */}
-      {showPaymentModal && paymentData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full space-y-6">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiCrop className="text-yellow-600" size={40} />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                PRO Planga o'tish
-              </h2>
-              <p className="text-gray-600">35,000 so'm/oy</p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-800 mb-2">
-                  PRO Plan imkoniyatlari:
-                </h4>
-                <ul className="space-y-1 text-sm text-gray-600">
-                  <li className="flex items-center space-x-2">
-                    <FiCheck className="text-green-500" size={14} />
-                    <span>Cheksiz testlar</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <FiCheck className="text-green-500" size={14} />
-                    <span>Imtihon rejimi</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <FiCheck className="text-green-500" size={14} />
-                    <span>1 oy amal qilish muddati</span>
-                  </li>
-                </ul>
+        {/* Payment Modal */}
+        {showPaymentModal && paymentData && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full space-y-6">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FiCrop className="text-yellow-600" size={40} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                  {t("upgradeProPlan")}
+                </h2>
+                <p className="text-gray-600">19,999 {t("pricePerMonth")}</p>
               </div>
 
-              <div className="space-y-3">
-                <a
-                  href={paymentData.clickUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
-                >
-                  <FiCreditCard size={18} />
-                  <span>Click orqali to'lash</span>
-                </a>
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium text-gray-800 mb-2">
+                    {t("proFeatures")}
+                  </h4>
+                  <ul className="space-y-1 text-sm text-gray-600">
+                    <li className="flex items-center space-x-2">
+                      <FiCheck className="text-green-500" size={14} />
+                      <span>{t("unlimitedTests")}</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <FiCheck className="text-green-500" size={14} />
+                      <span>{t("examMode")}</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <FiCheck className="text-green-500" size={14} />
+                      <span>{t("validityPeriod", { count: 1 })}</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="space-y-3">
+                  <a
+                    href={paymentData.clickUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <FiExternalLink size={18} />
+                    <span>{t("payViaClick")}</span>
+                  </a>
+
+                  <button
+                    onClick={() => window.open(paymentData.qrCode, "_blank")}
+                    className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <FiCode size={18} />
+                    <span>{t("payViaQR")}</span>
+                  </button>
+
+                  <button
+                    onClick={() => checkPaymentStatus(paymentData.paymentId)}
+                    className="w-full bg-gray-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                  >
+                    {t("checkPaymentStatus")}
+                  </button>
+                </div>
 
                 <button
                   onClick={() => setShowPaymentModal(false)}
                   className="w-full border border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                 >
-                  Bekor qilish
+                  {t("cancel")}
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

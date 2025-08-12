@@ -65,7 +65,7 @@ const Profile = () => {
       setPaymentData(response.data.data);
       setShowPaymentModal(true);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Xatolik yuz berdi");
+      toast.error(error.response?.data?.message || t("error"));
     } finally {
       setLoadingPayment(false);
     }
@@ -75,7 +75,7 @@ const Profile = () => {
     try {
       const response = await api.get(`/payments/payment-status/${paymentId}`);
       if (response.data.data.status === "paid") {
-        toast.success("To'lov muvaffaqiyatli amalga oshirildi!");
+        toast.success(t("paymentSuccessful"));
         setShowPaymentModal(false);
         dispatch(getProfile());
         fetchUserPlan();
@@ -262,12 +262,12 @@ const Profile = () => {
                   <FiUser className="text-gray-600" size={24} />
                 )}
                 <h3 className="text-xl font-bold text-gray-800">
-                  {isPro && !isExpired ? "PRO Plan" : "FREE Plan"}
+                  {isPro && !isExpired ? t("proPlan") : t("freePlan")}
                 </h3>
               </div>
               {isPro && !isExpired && (
                 <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-                  Faol
+                  {t("activePlan")}
                 </span>
               )}
             </div>
@@ -276,21 +276,21 @@ const Profile = () => {
               <div className="space-y-3">
                 <div className="flex items-center space-x-2 text-green-600">
                   <FiCheck size={16} />
-                  <span>Cheksiz testlar</span>
+                  <span>{t("unlimitedTests")}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-green-600">
                   <FiCheck size={16} />
-                  <span>Barcha funksiyalar</span>
+                  <span>{t("allFeatures")}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-green-600">
                   <FiCheck size={16} />
-                  <span>Premium qo'llab-quvvatlash</span>
+                  <span>{t("premiumSupport")}</span>
                 </div>
                 {user?.planExpiryDate && (
                   <div className="flex items-center space-x-2 text-gray-600">
                     <FiClock size={16} />
                     <span>
-                      Tugash sanasi:{" "}
+                      {t("validityPeriod")}:{" "}
                       {new Date(user.planExpiryDate).toLocaleDateString(
                         "uz-UZ"
                       )}
@@ -303,15 +303,15 @@ const Profile = () => {
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2 text-gray-600">
                     <FiCheck size={16} />
-                    <span>Kuniga 20 ta test</span>
+                    <span>{t("testLimit", { count: 20 })}</span>
                   </div>
                   <div className="flex items-center space-x-2 text-gray-400">
                     <FiX size={16} />
-                    <span>Cheksiz testlar</span>
+                    <span>{t("unlimitedTests")}</span>
                   </div>
                   <div className="flex items-center space-x-2 text-gray-400">
                     <FiX size={16} />
-                    <span>Premium qo'llab-quvvatlash</span>
+                    <span>{t("premiumSupport")}</span>
                   </div>
                 </div>
 
@@ -319,7 +319,7 @@ const Profile = () => {
                   <div className="bg-white rounded-lg p-4 border border-gray-200">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-600">
-                        Bugungi testlar
+                        {t("testLimitToday")}
                       </span>
                       <span className="font-semibold text-gray-800">
                         {userPlan.dailyUsed}/20
@@ -342,8 +342,8 @@ const Profile = () => {
                   <FiCrop size={18} />
                   <span>
                     {loadingPayment
-                      ? "Yuklanmoqda..."
-                      : "PRO ga o'tish - 35,000 so'm"}
+                      ? t("loading")
+                      : t("upgradeProPlan") + " - 35,000 " + t("pricePerMonth")}
                   </span>
                 </button>
               </div>
@@ -467,7 +467,7 @@ const Profile = () => {
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
               <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
                 <FiCreditCard className="mr-2" size={24} />
-                To'lovlar tarixi
+                {t("paymentHistory")}
               </h3>
 
               <div className="space-y-3">
@@ -499,7 +499,7 @@ const Profile = () => {
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-gray-800">
-                        {payment.amount.toLocaleString()} so'm
+                        {payment.amount.toLocaleString()} {t("pricePerMonth")}
                       </div>
                       <div
                         className={`text-sm capitalize ${
@@ -510,7 +510,7 @@ const Profile = () => {
                             : "text-red-600"
                         }`}
                       >
-                        {payment.status}
+                        {t(`paymentStatus.${payment.status}`)}
                       </div>
                     </div>
                   </div>
@@ -530,28 +530,28 @@ const Profile = () => {
                 <FiCrop className="text-yellow-600" size={40} />
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                PRO Planga o'tish
+                {t("upgradeProPlan")}
               </h2>
-              <p className="text-gray-600">35,000 so'm</p>
+              <p className="text-gray-600">35,000 {t("pricePerMonth")}</p>
             </div>
 
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded-lg">
                 <h4 className="font-medium text-gray-800 mb-2">
-                  PRO Plan imkoniyatlari:
+                  {t("proFeatures")}
                 </h4>
                 <ul className="space-y-1 text-sm text-gray-600">
                   <li className="flex items-center space-x-2">
                     <FiCheck className="text-green-500" size={14} />
-                    <span>Cheksiz testlar</span>
+                    <span>{t("unlimitedTests")}</span>
                   </li>
                   <li className="flex items-center space-x-2">
                     <FiCheck className="text-green-500" size={14} />
-                    <span>Barcha funksiyalar</span>
+                    <span>{t("allFeatures")}</span>
                   </li>
                   <li className="flex items-center space-x-2">
                     <FiCheck className="text-green-500" size={14} />
-                    <span>1 oy amal qilish muddati</span>
+                    <span>{t("validityPeriod", { count: 1 })}</span>
                   </li>
                 </ul>
               </div>
@@ -564,7 +564,7 @@ const Profile = () => {
                   className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
                 >
                   <FiExternalLink size={18} />
-                  <span>Click orqali to'lash</span>
+                  <span>{t("payViaClick")}</span>
                 </a>
 
                 <button
@@ -572,14 +572,14 @@ const Profile = () => {
                   className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
                 >
                   <FiCode size={18} />
-                  <span>QR kod orqali to'lash</span>
+                  <span>{t("payViaQR")}</span>
                 </button>
 
                 <button
                   onClick={() => checkPaymentStatus(paymentData.paymentId)}
                   className="w-full bg-gray-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-700 transition-colors"
                 >
-                  To'lov holatini tekshirish
+                  {t("checkPaymentStatus")}
                 </button>
               </div>
 
@@ -587,7 +587,7 @@ const Profile = () => {
                 onClick={() => setShowPaymentModal(false)}
                 className="w-full border border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-50 transition-colors"
               >
-                Bekor qilish
+                {t("cancel")}
               </button>
             </div>
           </div>

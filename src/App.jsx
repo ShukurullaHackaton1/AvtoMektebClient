@@ -106,49 +106,34 @@ const AppContent = () => {
         {/* Test page - no layout, auth required */}
         <Route path="/test/:lang/:templateId" element={<Test />} />
 
-        {/* Home page - with layout */}
-        <Route
-          path="/"
-          element={
-            <Layout>
-              <Home />
-            </Layout>
-          }
-        />
+        {/* Routes with Layout - using nested route structure */}
+        <Route path="/" element={<Layout />}>
+          {/* Home page */}
+          <Route index element={<Home />} />
 
-        {/* Templates - with layout, auth required */}
-        <Route
-          path="/templates"
-          element={
-            <Layout>
-              <Templates />
-            </Layout>
-          }
-        />
+          {/* Templates */}
+          <Route path="templates" element={<Templates />} />
 
-        {/* Mistakes - with layout, auth required */}
-        <Route
-          path="/mistakes"
-          element={
-            <ProtectedRoute>
-              <Layout>
+          {/* Mistakes - auth required */}
+          <Route
+            path="mistakes"
+            element={
+              <ProtectedRoute>
                 <Mistakes />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Profile - with layout, auth required */}
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Layout>
+          {/* Profile - auth required */}
+          <Route
+            path="profile"
+            element={
+              <ProtectedRoute>
                 <Profile />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
 
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
