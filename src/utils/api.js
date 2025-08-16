@@ -3,9 +3,9 @@ import axios from "axios";
 import store from "../store/store";
 import { logout } from "../store/slices/authSlice";
 
-export const baseUrl = "http://localhost:4522";
+export const baseUrl = "https://server.test-avtomaktab.uz";
 const api = axios.create({
-  baseURL: "http://localhost:4522/api",
+  baseURL: "https://server.test-avtomaktab.uz/api",
   headers: {
     "Content-Type": "application/json",
   },
