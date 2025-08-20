@@ -222,7 +222,7 @@ const Plans = () => {
                 {t("proPlan")}
               </h2>
               <div className="text-4xl font-bold text-yellow-600 mb-2">
-                19,999{" "}
+                1,000{" "}
                 <span className="text-xl text-gray-500 line-through">
                   40,000
                 </span>{" "}
@@ -404,7 +404,7 @@ const Plans = () => {
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">
                   {t("upgradeProPlan")}
                 </h2>
-                <p className="text-gray-600">19,999 {t("pricePerMonth")}</p>
+                <p className="text-gray-600">1,000 {t("pricePerMonth")}</p>
               </div>
 
               <div className="space-y-4">

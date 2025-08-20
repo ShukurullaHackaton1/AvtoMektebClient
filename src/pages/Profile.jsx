@@ -343,7 +343,7 @@ const Profile = () => {
                   <span>
                     {loadingPayment
                       ? t("loading")
-                      : t("upgradeProPlan") + " - 35,000 " + t("pricePerMonth")}
+                      : t("upgradeProPlan") + " - 1000 " + t("pricePerMonth")}
                   </span>
                 </button>
               </div>
@@ -532,7 +532,7 @@ const Profile = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 {t("upgradeProPlan")}
               </h2>
-              <p className="text-gray-600">35,000 {t("pricePerMonth")}</p>
+              <p className="text-gray-600">1000 {t("pricePerMonth")}</p>
             </div>
 
             <div className="space-y-4">

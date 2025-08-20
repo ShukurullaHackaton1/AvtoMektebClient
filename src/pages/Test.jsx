@@ -199,7 +199,7 @@ const Test = () => {
                 src={`${baseUrl}/${item.value}`}
                 alt="Question"
                 loading="lazy"
-                className="max-w-full h-auto rounded-lg shadow-sm"
+                className="  w-[70%] mx-auto rounded-lg shadow-sm"
                 onError={(e) => {
                   e.target.style.display = "none";
                 }}
@@ -250,7 +250,7 @@ const Test = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+      <div className="bg-white  shadow-sm border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -281,9 +281,9 @@ const Test = () => {
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid h-[65vh] grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Side - Question */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 h-[100%] space-y-6">
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
               <div className="mb-6">
                 <div className="flex items-center space-x-3 mb-4">
