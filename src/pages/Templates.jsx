@@ -12,14 +12,14 @@ const Templates = () => {
   const { templates, isLoading, error } = useSelector(
     (state) => state.templates
   );
-  const [selectedLang, setSelectedLang] = useState(i18n.language);
+  const [selectedLang, setSelectedLang] = useState("kaa");
   const [loadingCache, setLoadingCache] = useState({});
 
   const languages = [
+    { code: "kaa", name: "Qaraqalpaqsha", flag: "kaa" },
     { code: "uz", name: "O'zbekcha", flag: "🇺🇿" },
     { code: "ru", name: "Русский", flag: "🇷🇺" },
     { code: "uz_kiril", name: "Ўзбекча", flag: "🇺🇿" },
-    { code: "kaa", name: "Qaraqalpaqsha", flag: "kaa" },
   ];
 
   useEffect(() => {

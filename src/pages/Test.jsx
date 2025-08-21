@@ -199,7 +199,7 @@ const Test = () => {
                 src={`${baseUrl}/${item.value}`}
                 alt="Question"
                 loading="lazy"
-                className="  w-[70%] mx-auto rounded-lg shadow-sm"
+                className="mx-auto rounded-lg shadow-sm"
                 onError={(e) => {
                   e.target.style.display = "none";
                 }}
@@ -232,6 +232,23 @@ const Test = () => {
     navigate("/templates");
   };
 
+  // Helper function to get answer text
+  const getAnswerText = (answer) => {
+    return answer.body.map((item) => item.value).join(" ");
+  };
+
+  // Helper function to check if answer is long
+  const isAnswerLong = (answer) => {
+    const text = getAnswerText(answer);
+    return text.length > 200;
+  };
+
+  // Check if any answer in current question is long
+  const hasLongAnswers = () => {
+    if (!question) return false;
+    return question.answers.some((answer) => isAnswerLong(answer));
+  };
+
   if (isLoading || !currentTemplate) {
     return (
       <div className="flex items-center justify-center min-h-64">
@@ -247,10 +264,14 @@ const Test = () => {
   const totalQuestions = currentTemplate.template.questions.length;
   const completedQuestions = getCompletedQuestions();
 
+  // Determine layout based on answer lengths
+  const shouldUseFullWidth = hasLongAnswers();
+  const shouldUseWideAnswers = hasLongAnswers();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white  shadow-sm border-b border-gray-200 px-6 py-4">
+      <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -281,9 +302,25 @@ const Test = () => {
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
-        <div className="grid h-[65vh] grid-cols-1 lg:grid-cols-3 gap-8">
+        <div
+          className={`grid grid-cols-1 ${
+            shouldUseFullWidth
+              ? ""
+              : shouldUseWideAnswers
+              ? "lg:grid-cols-2"
+              : "lg:grid-cols-3"
+          } gap-8`}
+        >
           {/* Left Side - Question */}
-          <div className="lg:col-span-2 h-[100%] space-y-6">
+          <div
+            className={`${
+              shouldUseFullWidth
+                ? ""
+                : shouldUseWideAnswers
+                ? "lg:col-span-1"
+                : "lg:col-span-2"
+            } h-[100%] space-y-6`}
+          >
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
               <div className="mb-6">
                 <div className="flex items-center space-x-3 mb-4">
@@ -315,8 +352,20 @@ const Test = () => {
           </div>
 
           {/* Right Side - Answer Options */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-6">
+          <div
+            className={`${
+              shouldUseFullWidth
+                ? ""
+                : shouldUseWideAnswers
+                ? "lg:col-span-1"
+                : "lg:col-span-1"
+            } space-y-6`}
+          >
+            <div
+              className={`bg-white rounded-2xl p-6 shadow-sm border border-gray-100 ${
+                shouldUseFullWidth ? "" : "sticky top-6"
+              }`}
+            >
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 {t("selectAnswer")}
               </h3>
@@ -327,10 +376,14 @@ const Test = () => {
                     "w-full text-left p-4 rounded-lg border-2 transition-all duration-200 ";
 
                   if (showResult) {
-                    if (answer.check === 1) {
+                    // Only show correct answer in green if user was correct
+                    if (lastResult?.isCorrect && answer.id === selectedAnswer) {
                       buttonClass +=
                         "border-green-500 bg-green-50 text-green-700";
-                    } else if (answer.id === selectedAnswer) {
+                    } else if (
+                      answer.id === selectedAnswer &&
+                      !lastResult?.isCorrect
+                    ) {
                       buttonClass += "border-red-500 bg-red-50 text-red-700";
                     } else {
                       buttonClass += "border-gray-200 bg-gray-50 text-gray-500";
@@ -344,6 +397,9 @@ const Test = () => {
                     }
                   }
 
+                  const answerText = getAnswerText(answer);
+                  const isLong = isAnswerLong(answer);
+
                   return (
                     <button
                       key={answer.id}
@@ -351,20 +407,39 @@ const Test = () => {
                       disabled={isAnswered}
                       className={buttonClass}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <span className="w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-xs font-medium">
+                      <div
+                        className={`flex items-${
+                          isLong ? "start" : "center"
+                        } justify-between`}
+                      >
+                        <div
+                          className={`flex items-${
+                            isLong ? "start" : "center"
+                          } space-x-3 flex-1`}
+                        >
+                          <span
+                            className={`w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-xs font-medium ${
+                              isLong ? "mt-1 flex-shrink-0" : ""
+                            }`}
+                          >
                             {String.fromCharCode(65 + index)}
                           </span>
-                          <span>
-                            {answer.body.map((item) => item.value).join(" ")}
+                          <span
+                            className={`${isLong ? "leading-relaxed" : ""}`}
+                          >
+                            {answerText}
                           </span>
                         </div>
                         {showResult && (
-                          <div className="flex items-center">
-                            {answer.check === 1 ? (
+                          <div
+                            className={`flex items-center ${
+                              isLong ? "mt-1" : ""
+                            }`}
+                          >
+                            {answer.id === lastResult?.correctAnswer ? (
                               <FiCheck className="text-green-600" size={20} />
-                            ) : answer.id === selectedAnswer ? (
+                            ) : answer.id === selectedAnswer &&
+                              !lastResult?.isCorrect ? (
                               <FiX className="text-red-600" size={20} />
                             ) : null}
                           </div>
