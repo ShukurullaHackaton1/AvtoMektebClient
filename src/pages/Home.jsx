@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   FiFileText,
   FiAlertCircle,
@@ -23,15 +23,25 @@ import {
 } from "react-icons/fi";
 import api from "../utils/api";
 import toast from "react-hot-toast";
+import { getCurrentPricing } from "../store/slices/pricingSlice";
 
 const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { currentPricing, isLoading: pricingLoading } = useSelector(
+    (state) => state.pricing
+  );
   const [selectedPlan, setSelectedPlan] = useState("free");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
   const [loadingPayment, setLoadingPayment] = useState(false);
+
+  // Pricing ma'lumotlarini yuklash
+  useEffect(() => {
+    dispatch(getCurrentPricing());
+  }, [dispatch]);
 
   const cards = [
     {
@@ -100,6 +110,8 @@ const Home = () => {
       if (response.data.data.status === "paid") {
         toast.success(t("paymentSuccessful"));
         setShowPaymentModal(false);
+        // Pricing ma'lumotlarini yangilash
+        dispatch(getCurrentPricing());
       } else {
         toast.error(t("paymentFailed"));
       }
@@ -119,6 +131,20 @@ const Home = () => {
     } else if (planType === "pro") {
       createPayment();
     }
+  };
+
+  // Dinamik narxlarni formatlash
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("uz-UZ").format(price);
+  };
+
+  const getDiscountEndDate = () => {
+    if (currentPricing?.discountEndDate) {
+      const date = new Date(currentPricing.discountEndDate);
+      const month = date.toLocaleDateString("uz-UZ");
+      return `${month} oyi oxirigacha`;
+    }
+    return "chegirma muddati tugagan";
   };
 
   return (
@@ -176,9 +202,7 @@ const Home = () => {
             <div className="space-y-4 mb-8">
               <div className="flex items-center space-x-3">
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
-                <span className="text-gray-700">
-                  {t("testLimit", { count: 20 })}
-                </span>
+                <span className="text-gray-700">20 {t("testLimit")}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
@@ -225,23 +249,36 @@ const Home = () => {
                 <FiCrop className="text-yellow-600" size={32} />
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                {t("proPlan")}
+                {currentPricing?.displayName || t("proPlan")}
               </h3>
               <div className="text-3xl font-bold text-yellow-600 mb-2">
-                19,999{" "}
-                <span className="text-lg text-gray-500 line-through">
-                  40,000
-                </span>{" "}
-                <span className="text-lg text-gray-500">
-                  {t("pricePerMonth")}
-                </span>
+                {pricingLoading ? (
+                  <span className="animate-pulse">...</span>
+                ) : (
+                  <>
+                    {formatPrice(currentPricing?.price || 19999)}{" "}
+                    {currentPricing?.originalPrice && (
+                      <span className="text-lg text-gray-500 line-through">
+                        {formatPrice(currentPricing.originalPrice)}
+                      </span>
+                    )}{" "}
+                    <span className="text-lg text-gray-500">
+                      {t("pricePerMonth")}
+                    </span>
+                  </>
+                )}
               </div>
               <p className="text-gray-600">
                 <span>{t("forProfessionals")}</span>
-                <br />
-                <span className="text-sm text-red-500">
-                  Chegirma avgust oyi oxirigacha amal qiladi
-                </span>
+                {currentPricing?.discountPercentage > 0 && (
+                  <>
+                    <br />
+                    <span className="text-sm text-red-500">
+                      {currentPricing.discountPercentage}% chegirma{" "}
+                      {getDiscountEndDate()} amal qiladi
+                    </span>
+                  </>
+                )}
               </p>
             </div>
 
@@ -266,11 +303,18 @@ const Home = () => {
                 <FiCheck className="text-green-500 flex-shrink-0" size={20} />
                 <span>{t("premiumSupport")}</span>
               </div>
+              {currentPricing?.duration && (
+                <div className="flex items-center space-x-3">
+                  <FiCheck className="text-green-500 flex-shrink-0" size={20} />
+                  <span>{currentPricing.duration} kunlik muddat</span>
+                </div>
+              )}
             </div>
 
             <button
               onClick={() => handlePlanAction("pro")}
               className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 px-6 rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center space-x-2"
+              disabled={loadingPayment || pricingLoading}
             >
               <FiCreditCard size={18} />
               <span>
@@ -368,7 +412,14 @@ const Home = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 {t("upgradeProPlan")}
               </h2>
-              <p className="text-gray-600">19,999 {t("pricePerMonth")}</p>
+              <p className="text-gray-600">
+                {formatPrice(paymentData.amount)} {t("pricePerMonth")}
+              </p>
+              {paymentData.originalPrice && (
+                <p className="text-sm text-gray-500 line-through">
+                  Asl narxi: {formatPrice(paymentData.originalPrice)}
+                </p>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -387,7 +438,7 @@ const Home = () => {
                   </li>
                   <li className="flex items-center space-x-2">
                     <FiCheck className="text-green-500" size={14} />
-                    <span>{t("validityPeriod", { count: 1 })}</span>
+                    <span>{paymentData.duration} kunlik muddat</span>
                   </li>
                 </ul>
               </div>

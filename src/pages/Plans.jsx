@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   FiCheck,
   FiX,
@@ -15,14 +15,20 @@ import {
   FiTrendingUp,
   FiCode,
   FiExternalLink,
+  FiRefreshCw,
 } from "react-icons/fi";
 import api from "../utils/api";
 import toast from "react-hot-toast";
+import { getCurrentPricing } from "../store/slices/pricingSlice";
 
 const Plans = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { currentPricing, isLoading: pricingLoading } = useSelector(
+    (state) => state.pricing
+  );
   const [userPlan, setUserPlan] = useState(null);
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -30,7 +36,9 @@ const Plans = () => {
 
   useEffect(() => {
     fetchUserPlan();
-  }, []);
+    // Pricing ma'lumotlarini yuklash
+    dispatch(getCurrentPricing());
+  }, [dispatch]);
 
   const fetchUserPlan = async () => {
     try {
@@ -61,10 +69,33 @@ const Plans = () => {
         toast.success(t("paymentSuccessful"));
         setShowPaymentModal(false);
         fetchUserPlan();
+        // Pricing ma'lumotlarini yangilash
+        dispatch(getCurrentPricing());
       }
     } catch (error) {
       console.error("Payment status check error:", error);
     }
+  };
+
+  const refreshPricing = () => {
+    dispatch(getCurrentPricing());
+    toast.success("Narxlar yangilandi");
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("uz-UZ").format(price);
+  };
+
+  const getDiscountEndDate = () => {
+    if (currentPricing?.discountEndDate) {
+      const date = new Date(currentPricing.discountEndDate);
+      return date.toLocaleDateString("uz-UZ", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    }
+    return null;
   };
 
   const isPro = user?.plan === "pro";
@@ -72,7 +103,7 @@ const Plans = () => {
     user?.planExpiryDate && new Date(user.planExpiryDate) < new Date();
 
   const freeFeatures = [
-    { text: t("testLimit", { count: 20 }), included: true },
+    { text: "20 ta test limiti", included: true },
     { text: t("allLanguages"), included: true },
     { text: t("errorAnalysis"), included: true },
     { text: t("statistics"), included: true },
@@ -104,9 +135,21 @@ const Plans = () => {
             <span>{t("backToHome")}</span>
           </button>
 
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            {t("choosePlan")}
-          </h1>
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <h1 className="text-4xl font-bold text-gray-800">
+              {t("choosePlan")}
+            </h1>
+            <button
+              onClick={refreshPricing}
+              className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+              title="Narxlarni yangilash"
+            >
+              <FiRefreshCw
+                size={20}
+                className={pricingLoading ? "animate-spin" : ""}
+              />
+            </button>
+          </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             {t("selectPlan")}
           </p>
@@ -135,10 +178,10 @@ const Plans = () => {
                   </h3>
                   <p className="text-gray-600">
                     {userPlan && user.plan === "free"
-                      ? t("usedTests", { count: userPlan.lifetimeUsed })
+                      ? `Ishlatilgan: ${userPlan.lifetimeUsed}/20`
                       : isPro && !isExpired
                       ? t("unlimitedTests")
-                      : t("testLimit", { count: 20 })}
+                      : "20 ta test limiti"}
                   </p>
                 </div>
               </div>
@@ -219,23 +262,46 @@ const Plans = () => {
                 <FiCrop className="text-yellow-600" size={36} />
               </div>
               <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                {t("proPlan")}
+                {currentPricing?.displayName || t("proPlan")}
               </h2>
               <div className="text-4xl font-bold text-yellow-600 mb-2">
-                1,000{" "}
-                <span className="text-xl text-gray-500 line-through">
-                  40,000
-                </span>{" "}
-                <span className="text-xl text-gray-500">
-                  {t("pricePerMonth")}
-                </span>
+                {pricingLoading ? (
+                  <span className="animate-pulse">Yuklanmoqda...</span>
+                ) : (
+                  <>
+                    {formatPrice(currentPricing?.price || 19999)}{" "}
+                    {currentPricing?.originalPrice && (
+                      <span className="text-xl text-gray-500 line-through">
+                        {formatPrice(currentPricing.originalPrice)}
+                      </span>
+                    )}{" "}
+                    <span className="text-xl text-gray-500">
+                      {t("pricePerMonth")}
+                    </span>
+                  </>
+                )}
               </div>
               <p className="text-gray-600">
                 <span>{t("forProfessionals")}</span>
-                <br />
-                <span className="text-sm text-red-500">
-                  Chegirma avgust oyi oxirigacha amal qiladi
-                </span>
+                {currentPricing?.discountPercentage > 0 && (
+                  <>
+                    <br />
+                    <span className="text-sm text-red-500 font-medium">
+                      {currentPricing.discountPercentage}% chegirma
+                      {currentPricing.discountEndDate && (
+                        <> {getDiscountEndDate()} gacha</>
+                      )}
+                    </span>
+                  </>
+                )}
+                {currentPricing?.duration && (
+                  <>
+                    <br />
+                    <span className="text-sm text-gray-500">
+                      Muddat: {currentPricing.duration} kun
+                    </span>
+                  </>
+                )}
               </p>
             </div>
 
@@ -246,6 +312,14 @@ const Plans = () => {
                   <span className="text-gray-700">{feature.text}</span>
                 </div>
               ))}
+              {currentPricing?.duration && (
+                <div className="flex items-center space-x-3">
+                  <FiCheck className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-gray-700 font-medium">
+                    {currentPricing.duration} kunlik muddat
+                  </span>
+                </div>
+              )}
             </div>
 
             {isPro && !isExpired ? (
@@ -255,7 +329,7 @@ const Plans = () => {
             ) : (
               <button
                 onClick={createPayment}
-                disabled={loadingPayment}
+                disabled={loadingPayment || pricingLoading}
                 className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 px-6 rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
               >
                 <FiCreditCard size={18} />
@@ -291,17 +365,24 @@ const Plans = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr>
-                    <td className="py-4 px-6 text-gray-700">
-                      {t("testLimit")}
-                    </td>
+                    <td className="py-4 px-6 text-gray-700">Test limiti</td>
                     <td className="py-4 px-6 text-center text-gray-600">
-                      {t("testLimit", { count: 20 })}
+                      20 ta
                     </td>
                     <td className="py-4 px-6 text-center text-yellow-600 font-medium">
                       {t("unlimitedTests")}
                     </td>
                   </tr>
                   <tr className="bg-gray-50">
+                    <td className="py-4 px-6 text-gray-700">Muddat</td>
+                    <td className="py-4 px-6 text-center text-gray-600">
+                      Umrbod
+                    </td>
+                    <td className="py-4 px-6 text-center text-yellow-600 font-medium">
+                      {currentPricing?.duration || 30} kun
+                    </td>
+                  </tr>
+                  <tr>
                     <td className="py-4 px-6 text-gray-700">
                       {t("allLanguages")}
                     </td>
@@ -312,7 +393,7 @@ const Plans = () => {
                       <FiCheck className="text-green-500 mx-auto" size={20} />
                     </td>
                   </tr>
-                  <tr>
+                  <tr className="bg-gray-50">
                     <td className="py-4 px-6 text-gray-700">{t("examMode")}</td>
                     <td className="py-4 px-6 text-center">
                       <FiX className="text-red-400 mx-auto" size={20} />
@@ -321,7 +402,7 @@ const Plans = () => {
                       <FiCheck className="text-green-500 mx-auto" size={20} />
                     </td>
                   </tr>
-                  <tr className="bg-gray-50">
+                  <tr>
                     <td className="py-4 px-6 text-gray-700">
                       {t("statistics")}
                     </td>
@@ -332,7 +413,7 @@ const Plans = () => {
                       <FiCheck className="text-green-500 mx-auto" size={20} />
                     </td>
                   </tr>
-                  <tr>
+                  <tr className="bg-gray-50">
                     <td className="py-4 px-6 text-gray-700">
                       {t("errorAnalysis")}
                     </td>
@@ -343,7 +424,7 @@ const Plans = () => {
                       <FiCheck className="text-green-500 mx-auto" size={20} />
                     </td>
                   </tr>
-                  <tr className="bg-gray-50">
+                  <tr>
                     <td className="py-4 px-6 text-gray-700">
                       {t("premiumSupport")}
                     </td>
@@ -352,6 +433,28 @@ const Plans = () => {
                     </td>
                     <td className="py-4 px-6 text-center">
                       <FiCheck className="text-green-500 mx-auto" size={20} />
+                    </td>
+                  </tr>
+                  <tr className="bg-yellow-50">
+                    <td className="py-4 px-6 text-gray-700 font-medium">
+                      Narx
+                    </td>
+                    <td className="py-4 px-6 text-center text-gray-600 font-medium">
+                      0 so'm
+                    </td>
+                    <td className="py-4 px-6 text-center text-yellow-600 font-bold">
+                      {pricingLoading ? (
+                        "..."
+                      ) : (
+                        <>
+                          {formatPrice(currentPricing?.price || 19999)} so'm
+                          {currentPricing?.originalPrice && (
+                            <div className="text-sm text-gray-500 line-through">
+                              {formatPrice(currentPricing.originalPrice)} so'm
+                            </div>
+                          )}
+                        </>
+                      )}
                     </td>
                   </tr>
                 </tbody>
@@ -404,7 +507,19 @@ const Plans = () => {
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">
                   {t("upgradeProPlan")}
                 </h2>
-                <p className="text-gray-600">1,000 {t("pricePerMonth")}</p>
+                <p className="text-gray-600">
+                  {formatPrice(paymentData.amount)} {t("pricePerMonth")}
+                </p>
+                {paymentData.originalPrice && (
+                  <p className="text-sm text-gray-500 line-through">
+                    Asl narxi: {formatPrice(paymentData.originalPrice)}
+                  </p>
+                )}
+                {paymentData.discountPercentage > 0 && (
+                  <p className="text-sm text-green-600 font-medium">
+                    {paymentData.discountPercentage}% chegirma
+                  </p>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -423,7 +538,7 @@ const Plans = () => {
                     </li>
                     <li className="flex items-center space-x-2">
                       <FiCheck className="text-green-500" size={14} />
-                      <span>{t("validityPeriod", { count: 1 })}</span>
+                      <span>{paymentData.duration} kunlik muddat</span>
                     </li>
                   </ul>
                 </div>
