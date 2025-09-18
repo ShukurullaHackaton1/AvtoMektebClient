@@ -341,9 +341,7 @@ const Profile = () => {
                 >
                   <FiCrop size={18} />
                   <span>
-                    {loadingPayment
-                      ? t("loading")
-                      : t("upgradeProPlan") + " - 1000 " + t("pricePerMonth")}
+                    {loadingPayment ? t("loading") : t("upgradeProPlan")}
                   </span>
                 </button>
               </div>
@@ -532,7 +530,6 @@ const Profile = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 {t("upgradeProPlan")}
               </h2>
-              <p className="text-gray-600">1000 {t("pricePerMonth")}</p>
             </div>
 
             <div className="space-y-4">
