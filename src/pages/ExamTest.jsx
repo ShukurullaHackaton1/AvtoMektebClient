@@ -446,9 +446,9 @@ const ExamTest = () => {
                 </div>
 
                 {/* Desktop Navigation */}
-                {isAnswered && (
+                {showResult && (
                   <div className="hidden md:block">
-                    {currentQuestion === totalQuestions - 1 ? (
+                    {currentIndex === questionNav.length - 1 ? (
                       allQuestionsAnswered ? (
                         <button
                           onClick={() => handleCompleteExam(false)}
