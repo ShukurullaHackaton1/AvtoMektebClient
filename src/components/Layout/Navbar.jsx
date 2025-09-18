@@ -192,7 +192,7 @@ const Navbar = () => {
               onClick={handlePlanClick}
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                 isPro && !isExpired
-                  ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:shadow-lg"
+                  ? ""
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
