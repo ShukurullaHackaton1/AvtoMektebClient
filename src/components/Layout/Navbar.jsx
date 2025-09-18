@@ -197,10 +197,7 @@ const Navbar = () => {
               }`}
             >
               {isPro && !isExpired ? (
-                <>
-                  <FiCrop size={16} />
-                  <span>PRO</span>
-                </>
+                <></>
               ) : (
                 <>
                   <FiStar size={16} />
