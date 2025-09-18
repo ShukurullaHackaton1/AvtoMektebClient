@@ -11,6 +11,9 @@ import {
   FiBarChart2,
   FiActivity,
   FiEye,
+  FiSettings,
+  FiLogOut,
+  FiRefreshCw,
 } from "react-icons/fi";
 import {
   LineChart,
@@ -26,7 +29,10 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logoutAdmin } from "../store/slices/adminSlice";
+import toast from "react-hot-toast";
 
 const AdminDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -35,6 +41,8 @@ const AdminDashboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState("week");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   // Real API dan ma'lumot olish
   useEffect(() => {
@@ -57,12 +65,16 @@ const AdminDashboard = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(data);
 
       setDashboardData(data.data);
     } catch (error) {
       console.error("Dashboard error:", error);
-      setError(error.message);
+      if (error.response?.status === 401) {
+        dispatch(logoutAdmin());
+        navigate("/login?admin=true");
+      } else {
+        setError(error.response?.data?.message || error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -74,8 +86,8 @@ const AdminDashboard = () => {
       if (!token) return;
 
       // Revenue analytics
-      const revenueResponse = await fetch(
-        `/api/admin/analytics/revenue?period=${selectedPeriod}`,
+      const revenueResponse = await axios.get(
+        `/admin/analytics/revenue?period=${selectedPeriod}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -83,14 +95,11 @@ const AdminDashboard = () => {
         }
       );
 
-      if (revenueResponse.ok) {
-        const revenueResult = await revenueResponse.json();
-        setRevenueData(revenueResult.data || []);
-      }
+      setRevenueData(revenueResponse.data.data || []);
 
       // User growth analytics
-      const userGrowthResponse = await fetch(
-        `/api/admin/analytics/user-growth?period=${selectedPeriod}`,
+      const userGrowthResponse = await axios.get(
+        `/admin/analytics/user-growth?period=${selectedPeriod}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -98,13 +107,16 @@ const AdminDashboard = () => {
         }
       );
 
-      if (userGrowthResponse.ok) {
-        const userGrowthResult = await userGrowthResponse.json();
-        setUserGrowthData(userGrowthResult.data || []);
-      }
+      setUserGrowthData(userGrowthResponse.data.data || []);
     } catch (error) {
       console.error("Analytics error:", error);
     }
+  };
+
+  const handleLogout = () => {
+    dispatch(logoutAdmin());
+    navigate("/login?admin=true");
+    toast.success("Admin paneldan chiqildi");
   };
 
   const formatCurrency = (amount) => {
@@ -184,6 +196,13 @@ const AdminDashboard = () => {
               </p>
             </div>
             <div className="flex items-center space-x-3">
+              <button
+                onClick={() => navigate("/admin/plan-management")}
+                className="px-4 py-2 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center space-x-2"
+              >
+                <FiSettings size={18} />
+                <span>PRO Plan Narxlari</span>
+              </button>
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -196,8 +215,16 @@ const AdminDashboard = () => {
               <button
                 onClick={fetchDashboardData}
                 className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                title="Yangilash"
               >
-                Yangilash
+                <FiRefreshCw size={18} />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                title="Chiqish"
+              >
+                <FiLogOut size={18} />
               </button>
             </div>
           </div>

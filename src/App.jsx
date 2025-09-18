@@ -17,6 +17,7 @@ import "./index.css";
 import Layout from "./components/Layout/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Pages
 import Home from "./pages/Home";
@@ -29,6 +30,8 @@ import Register from "./pages/Register";
 import Plans from "./pages/Plans";
 import AdminDashboard from "./pages/AdminDashboard";
 import StudentDetails from "./pages/StudentDetails";
+import PlanManagement from "./pages/PlanManagement";
+// import ExamTest from "./pages/ExamTest"; // Agar kerak bo'lsa
 
 const AppContent = () => {
   const dispatch = useDispatch();
@@ -66,6 +69,16 @@ const AppContent = () => {
             background: "#363636",
             color: "#fff",
           },
+          success: {
+            style: {
+              background: "#10B981",
+            },
+          },
+          error: {
+            style: {
+              background: "#EF4444",
+            },
+          },
         }}
       />
 
@@ -82,7 +95,7 @@ const AppContent = () => {
           element={userAuth ? <Navigate to="/" replace /> : <Register />}
         />
 
-        {/* Plans page - no layout */}
+        {/* Plans page - no layout (accessible for both authenticated and non-authenticated) */}
         <Route path="/plans" element={<Plans />} />
 
         {/* Admin routes - no layout */}
@@ -102,9 +115,34 @@ const AppContent = () => {
             </AdminProtectedRoute>
           }
         />
+        <Route
+          path="/admin/plan-management"
+          element={
+            <AdminProtectedRoute>
+              <PlanManagement />
+            </AdminProtectedRoute>
+          }
+        />
 
         {/* Test page - no layout, auth required */}
-        <Route path="/test/:lang/:templateId" element={<Test />} />
+        <Route
+          path="/test/:lang/:templateId"
+          element={
+            <ProtectedRoute>
+              <Test />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Exam routes (agar kerak bo'lsa) */}
+        {/* <Route
+          path="/exam/:examId/:questionIndex"
+          element={
+            <ProtectedRoute>
+              <ExamTest />
+            </ProtectedRoute>
+          }
+        /> */}
 
         {/* Routes with Layout - using nested route structure */}
         <Route path="/" element={<Layout />}>
@@ -135,7 +173,7 @@ const AppContent = () => {
           />
         </Route>
 
-        {/* Catch all */}
+        {/* Catch all - redirect to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
@@ -145,9 +183,11 @@ const AppContent = () => {
 function App() {
   return (
     <Provider store={store}>
-      <Router>
-        <AppContent />
-      </Router>
+      <ErrorBoundary>
+        <Router>
+          <AppContent />
+        </Router>
+      </ErrorBoundary>
     </Provider>
   );
 }
