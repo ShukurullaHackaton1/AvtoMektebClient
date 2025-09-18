@@ -1,3 +1,4 @@
+// src/components/Layout/Navbar.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -13,10 +14,10 @@ import {
   FiX,
   FiCrop,
   FiStar,
+  FiAward,
 } from "react-icons/fi";
 import { logout } from "../../store/slices/authSlice";
 import api from "../../utils/api";
-import { Logo } from "../../../public";
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
@@ -32,31 +33,50 @@ const Navbar = () => {
     { code: "uz", name: "O'zbekcha", flag: "🇺🇿" },
     { code: "ru", name: "Русский", flag: "🇷🇺" },
     { code: "uz_kiril", name: "Ўзбекча", flag: "🇺🇿" },
-    { code: "kaa", name: "Qaraqalpaqsha", flag: "🇰aa" },
+    { code: "kaa", name: "Qaraqalpaqsha", flag: "🇰🇿" },
   ];
 
-  // User plan ma'lumotlarini olish (faqat authenticated foydalanuvchilar uchun)
+  // User plan ma'lumotlarini olish
   useEffect(() => {
     const fetchUserPlan = async () => {
-      try {
-        const response = await api.get("/templates/user-plan");
-        setUserPlan(response.data.data);
-      } catch (error) {
-        console.error("User plan fetch error:", error);
+      if (user && isAuthenticated) {
+        try {
+          const response = await api.get("/templates/user-plan");
+          setUserPlan(response.data.data);
+        } catch (error) {
+          console.error("User plan fetch error:", error);
+        }
       }
     };
 
-    if (user && isAuthenticated) {
-      fetchUserPlan();
-    }
+    fetchUserPlan();
   }, [user, isAuthenticated]);
 
-  const baseNavItems = [
-    { path: "/", label: t("home"), icon: FiHome },
-    { path: "/templates", label: t("templates"), icon: FiFileText },
-    { path: "/mistakes", label: t("mistakes"), icon: FiAlertCircle },
-    { path: "/profile", label: t("profile"), icon: FiUser },
-  ];
+  const isPro = user?.plan === "pro";
+  const isExpired =
+    user?.planExpiryDate && new Date(user.planExpiryDate) < new Date();
+
+  // Dynamic navigation items based on user plan
+  const getNavItems = () => {
+    const items = [
+      { path: "/", label: t("home"), icon: FiHome },
+      { path: "/templates", label: t("templates"), icon: FiFileText },
+    ];
+
+    // PRO foydalanuvchilar uchun Imtihon menu
+    if (isPro && !isExpired) {
+      items.push({ path: "/exam", label: "Imtihon", icon: FiAward });
+    }
+
+    items.push(
+      { path: "/mistakes", label: t("mistakes"), icon: FiAlertCircle },
+      { path: "/profile", label: t("profile"), icon: FiUser }
+    );
+
+    return items;
+  };
+
+  const navItems = getNavItems();
 
   const handleLogout = () => {
     dispatch(logout());
@@ -67,10 +87,6 @@ const Navbar = () => {
     i18n.changeLanguage(lng);
     setIsLangMenuOpen(false);
   };
-
-  const isPro = user?.plan === "pro";
-  const isExpired =
-    user?.planExpiryDate && new Date(user.planExpiryDate) < new Date();
 
   const handlePlanClick = () => {
     if (isAuthenticated) {
@@ -88,11 +104,6 @@ const Navbar = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8  rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">
-                  <img src={Logo} alt="" />
-                </span>
-              </div>
               <span className="text-xl font-bold text-gray-800">AvtoTest</span>
             </Link>
 
@@ -148,14 +159,9 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8  rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">
-                <img src={Logo} alt="" />
-              </span>
-            </div>
             <span className="text-xl font-bold text-gray-800">AvtoTest</span>
             {isPro && !isExpired && (
-              <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+              <span className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium">
                 PRO
               </span>
             )}
@@ -163,7 +169,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {baseNavItems.map(({ path, label, icon: Icon }) => (
+            {navItems.map(({ path, label, icon: Icon }) => (
               <Link
                 key={path}
                 to={path}
@@ -300,7 +306,7 @@ const Navbar = () => {
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <div className="space-y-2">
-              {baseNavItems.map(({ path, label, icon: Icon }) => (
+              {navItems.map(({ path, label, icon: Icon }) => (
                 <Link
                   key={path}
                   to={path}

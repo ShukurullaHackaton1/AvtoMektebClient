@@ -1,391 +1,341 @@
-import express from "express";
-import authMiddleware from "../middlewares/authMiddleware.js";
-import { checkProPlan } from "../middlewares/planMiddleware.js";
-import templatesModel from "../models/templates.model.js";
-import userModel from "../models/user.model.js";
+// src/pages/Exam.jsx
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+import {
+  FiClock,
+  FiFileText,
+  FiGlobe,
+  FiPlay,
+  FiAward,
+  FiAlertCircle,
+  FiCheck,
+  FiBookOpen,
+  FiTarget,
+} from "react-icons/fi";
+import api from "../utils/api";
+import toast from "react-hot-toast";
 
-const router = express.Router();
+const Exam = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  const [selectedLang, setSelectedLang] = useState("uz");
+  const [isLoading, setIsLoading] = useState(false);
+  const [examStats, setExamStats] = useState(null);
 
-// Exam sessiyalarini saqlash uchun (memory da)
-const examSessions = new Map();
+  const languages = [
+    { code: "uz", name: "O'zbekcha", flag: "🇺🇿" },
+    { code: "ru", name: "Русский", flag: "🇷🇺" },
+    { code: "kiril", name: "Ўзбекча", flag: "🇺🇿" },
+    { code: "kaa", name: "Qaraqalpaqsha", flag: "🇰🇿" },
+  ];
 
-// Exam yaratish (20 yoki 50 ta test)
-router.post("/create-exam", authMiddleware, checkProPlan, async (req, res) => {
-  try {
-    const { language, questionCount } = req.body;
-    const { userId } = req.userData;
+  const examTypes = [
+    {
+      id: "20",
+      title: "Tezkor Imtihon",
+      questions: 20,
+      duration: 20,
+      description: "Tez va samarali bilimlaringizni sinab ko'ring",
+      features: [
+        "20 ta savol",
+        "20 daqiqa vaqt",
+        "Barcha mavzulardan",
+        "Tezkor natija",
+      ],
+      icon: FiFileText,
+      color: "blue",
+      bgGradient: "from-blue-500 to-cyan-500",
+      recommended: false,
+    },
+    {
+      id: "50",
+      title: "To'liq Imtihon",
+      questions: 50,
+      duration: 45,
+      description: "Chuqur va keng qamrovli bilim darajangizni aniqlang",
+      features: [
+        "50 ta savol",
+        "45 daqiqa vaqt",
+        "Keng qamrovli",
+        "Batafsil tahlil",
+      ],
+      icon: FiAward,
+      color: "purple",
+      bgGradient: "from-purple-500 to-pink-500",
+      recommended: true,
+    },
+  ];
 
-    // Validation
-    if (!["uz", "ru", "kiril", "uz_kiril", "kaa"].includes(language)) {
-      return res.status(400).json({
-        status: "error",
-        message: "Noto'g'ri til tanlandi",
-      });
+  useEffect(() => {
+    // Check if user is PRO
+    const isPro = user?.plan === "pro";
+    const isExpired =
+      user?.planExpiryDate && new Date(user.planExpiryDate) < new Date();
+
+    if (!isPro || isExpired) {
+      toast.error("Imtihon rejimi faqat PRO foydalanuvchilar uchun!");
+      navigate("/plans");
+    }
+  }, [user, navigate]);
+
+  const handleStartExam = async (questionCount) => {
+    if (!selectedLang) {
+      toast.error("Iltimos tilni tanlang!");
+      return;
     }
 
-    if (![20, 50].includes(questionCount)) {
-      return res.status(400).json({
-        status: "error",
-        message: "Test soni 20 yoki 50 bo'lishi kerak",
-      });
-    }
-
-    // uz_kiril ni kiril ga o'zgartirish
-    const searchLang = language === "uz_kiril" ? "kiril" : language;
-
-    // Shu tildagi barcha templatelarni olish
-    const templates = await templatesModel
-      .find({ templateLang: searchLang })
-      .select("template.questions")
-      .lean();
-
-    if (templates.length === 0) {
-      return res.status(404).json({
-        status: "error",
-        message: "Ushbu tilda templatelar topilmadi",
-      });
-    }
-
-    // Barcha savollarni bir joyga yig'ish
-    let allQuestions = [];
-    templates.forEach((template, templateIndex) => {
-      if (template.template?.questions) {
-        template.template.questions.forEach((question) => {
-          allQuestions.push({
-            ...question,
-            templateIndex,
-            originalTemplateId: template._id,
-          });
-        });
-      }
-    });
-
-    // Yetarli savol borligini tekshirish
-    if (allQuestions.length < questionCount) {
-      return res.status(400).json({
-        status: "error",
-        message: `Ushbu tilda faqat ${allQuestions.length} ta savol mavjud`,
-      });
-    }
-
-    // Random savollarni tanlash
-    const shuffled = allQuestions.sort(() => 0.5 - Math.random());
-    const selectedQuestions = shuffled.slice(0, questionCount);
-
-    // Exam session yaratish
-    const examId = `exam_${userId}_${Date.now()}`;
-    const examSession = {
-      examId,
-      userId,
-      language: searchLang,
-      questionCount,
-      questions: selectedQuestions,
-      answers: {}, // questionId -> answerId
-      results: {}, // questionId -> boolean
-      startTime: new Date(),
-      endTime: null,
-      currentQuestion: 0,
-      status: "active", // active, completed, expired
-    };
-
-    examSessions.set(examId, examSession);
-
-    // Auto expire after 2 hours
-    setTimeout(() => {
-      const session = examSessions.get(examId);
-      if (session && session.status === "active") {
-        session.status = "expired";
-        session.endTime = new Date();
-      }
-    }, 2 * 60 * 60 * 1000); // 2 soat
-
-    res.json({
-      status: "success",
-      data: {
-        examId,
-        questionCount: selectedQuestions.length,
-        language: searchLang,
-        startTime: examSession.startTime,
-        currentQuestion: 0,
-        totalQuestions: selectedQuestions.length,
-      },
-    });
-  } catch (error) {
-    console.error("Create exam error:", error);
-    res.status(500).json({ status: "error", message: error.message });
-  }
-});
-
-// Exam savol olish
-router.get(
-  "/question/:examId/:questionIndex",
-  authMiddleware,
-  checkProPlan,
-  async (req, res) => {
     try {
-      const { examId, questionIndex } = req.params;
-      const { userId } = req.userData;
+      setIsLoading(true);
 
-      const session = examSessions.get(examId);
-
-      if (!session || session.userId !== userId) {
-        return res.status(404).json({
-          status: "error",
-          message: "Exam topilmadi",
-        });
-      }
-
-      if (session.status !== "active") {
-        return res.status(400).json({
-          status: "error",
-          message: "Exam tugagan yoki muddati o'tgan",
-        });
-      }
-
-      const qIndex = parseInt(questionIndex);
-      if (qIndex < 0 || qIndex >= session.questions.length) {
-        return res.status(400).json({
-          status: "error",
-          message: "Noto'g'ri savol raqami",
-        });
-      }
-
-      const question = session.questions[qIndex];
-      const userAnswer = session.answers[question.id];
-      const isAnswered = session.results.hasOwnProperty(question.id);
-
-      res.json({
-        status: "success",
-        data: {
-          question: {
-            id: question.id,
-            body: question.body,
-            answers: question.answers,
-          },
-          questionIndex: qIndex,
-          totalQuestions: session.questions.length,
-          userAnswer,
-          isAnswered,
-          examInfo: {
-            examId,
-            language: session.language,
-            questionCount: session.questionCount,
-            startTime: session.startTime,
-          },
-        },
+      const response = await api.post("/exam/create-exam", {
+        language: selectedLang,
+        questionCount: parseInt(questionCount),
       });
+
+      const { examId } = response.data.data;
+
+      // Navigate to exam test page
+      navigate(`/exam-test/${examId}/0`);
+
+      toast.success("Imtihon boshlandi! Omad!");
     } catch (error) {
-      console.error("Get exam question error:", error);
-      res.status(500).json({ status: "error", message: error.message });
-    }
-  }
-);
-
-// Exam javob berish
-router.post(
-  "/answer/:examId",
-  authMiddleware,
-  checkProPlan,
-  async (req, res) => {
-    try {
-      const { examId } = req.params;
-      const { questionId, selectedAnswer } = req.body;
-      const { userId } = req.userData;
-
-      const session = examSessions.get(examId);
-
-      if (!session || session.userId !== userId) {
-        return res.status(404).json({
-          status: "error",
-          message: "Exam topilmadi",
-        });
-      }
-
-      if (session.status !== "active") {
-        return res.status(400).json({
-          status: "error",
-          message: "Exam tugagan yoki muddati o'tgan",
-        });
-      }
-
-      // Agar allaqachon javob berilgan bo'lsa
-      if (session.results.hasOwnProperty(questionId)) {
-        return res.status(400).json({
-          status: "error",
-          message: "Bu savolga allaqachon javob berilgan",
-        });
-      }
-
-      // Savolni topish
-      const question = session.questions.find(
-        (q) => q.id === parseInt(questionId)
+      toast.error(
+        error.response?.data?.message || "Imtihon yaratishda xatolik"
       );
-      if (!question) {
-        return res.status(400).json({
-          status: "error",
-          message: "Savol topilmadi",
-        });
-      }
-
-      // To'g'ri javobni topish
-      const correctAnswer = question.answers.find((ans) => ans.check === 1);
-      const selectedAnswerObj = question.answers.find(
-        (ans) => ans.id === parseInt(selectedAnswer)
-      );
-      const isCorrect = correctAnswer.id === parseInt(selectedAnswer);
-
-      // Javobni saqlash
-      session.answers[questionId] = parseInt(selectedAnswer);
-      session.results[questionId] = isCorrect;
-
-      res.json({
-        status: "success",
-        data: {
-          isCorrect,
-          correctAnswer: {
-            id: correctAnswer.id,
-            text: correctAnswer.body.map((b) => b.value).join(" "),
-          },
-          selectedAnswer: {
-            id: selectedAnswerObj.id,
-            text: selectedAnswerObj.body.map((b) => b.value).join(" "),
-          },
-        },
-      });
-    } catch (error) {
-      console.error("Exam answer error:", error);
-      res.status(500).json({ status: "error", message: error.message });
+    } finally {
+      setIsLoading(false);
     }
-  }
-);
+  };
 
-// Exam tugatish
-router.post(
-  "/complete/:examId",
-  authMiddleware,
-  checkProPlan,
-  async (req, res) => {
-    try {
-      const { examId } = req.params;
-      const { userId } = req.userData;
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 py-12">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full mb-6 shadow-lg animate-pulse">
+            <FiAward className="text-white" size={48} />
+          </div>
+          <h1 className="text-5xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Imtihon Rejimi
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Professional bilim darajangizni sinab ko'ring! Turli mavzulardan
+            tasodifiy tanlangan savollar orqali o'z bilimlaringizni baholang
+          </p>
+        </div>
 
-      const session = examSessions.get(examId);
+        {/* User Stats */}
+        {user && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 mb-8 shadow-lg border border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600">
+                  {user.totalTests || 0}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">Jami testlar</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600">
+                  {user.totalCorrect || 0}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">
+                  To'g'ri javoblar
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-red-600">
+                  {user.totalWrong || 0}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">Xato javoblar</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600">
+                  {user.totalTests > 0
+                    ? Math.round((user.totalCorrect / user.totalTests) * 100)
+                    : 0}
+                  %
+                </div>
+                <div className="text-sm text-gray-600 mt-1">Muvaffaqiyat</div>
+              </div>
+            </div>
+          </div>
+        )}
 
-      if (!session || session.userId !== userId) {
-        return res.status(404).json({
-          status: "error",
-          message: "Exam topilmadi",
-        });
-      }
+        {/* Language Selector */}
+        <div className="mb-10">
+          <h3 className="text-xl font-semibold text-gray-700 text-center mb-6">
+            <FiGlobe className="inline mr-2" size={24} />
+            Imtihon tilini tanlang
+          </h3>
+          <div className="flex flex-wrap justify-center gap-3">
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => setSelectedLang(lang.code)}
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 ${
+                  selectedLang === lang.code
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg scale-105"
+                    : "bg-white text-gray-700 hover:bg-gray-50 shadow-md"
+                }`}
+              >
+                <span className="text-lg mr-2">{lang.flag}</span>
+                <span>{lang.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
-      if (session.status !== "active") {
-        return res.status(400).json({
-          status: "error",
-          message: "Exam allaqachon tugagan",
-        });
-      }
+        {/* Exam Types */}
+        <div className="grid md:grid-cols-2 gap-8 mb-10">
+          {examTypes.map((exam) => (
+            <div
+              key={exam.id}
+              className={`relative bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 ${
+                exam.recommended ? "ring-2 ring-yellow-400" : ""
+              }`}
+            >
+              {exam.recommended && (
+                <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-bold">
+                  Tavsiya etiladi
+                </div>
+              )}
 
-      // Exam ni tugatish
-      session.status = "completed";
-      session.endTime = new Date();
+              <div className={`h-2 bg-gradient-to-r ${exam.bgGradient}`}></div>
 
-      // Natijalarni hisoblash
-      const totalQuestions = session.questions.length;
-      const answeredQuestions = Object.keys(session.results).length;
-      const correctAnswers = Object.values(session.results).filter(
-        Boolean
-      ).length;
-      const wrongAnswers = answeredQuestions - correctAnswers;
-      const unansweredQuestions = totalQuestions - answeredQuestions;
-      const percentage =
-        totalQuestions > 0
-          ? Math.round((correctAnswers / totalQuestions) * 100)
-          : 0;
+              <div className="p-8">
+                <div className="flex items-start justify-between mb-6">
+                  <div
+                    className={`w-20 h-20 bg-gradient-to-br ${exam.bgGradient} rounded-2xl flex items-center justify-center shadow-lg`}
+                  >
+                    <exam.icon className="text-white" size={36} />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-4xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                      {exam.questions}
+                    </div>
+                    <div className="text-sm text-gray-500 font-medium">
+                      savol
+                    </div>
+                  </div>
+                </div>
 
-      // User statistikasini yangilash
-      await userModel.findByIdAndUpdate(userId, {
-        $inc: {
-          totalTests: totalQuestions,
-          totalCorrect: correctAnswers,
-          totalWrong: wrongAnswers,
-        },
-      });
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                  {exam.title}
+                </h3>
+                <p className="text-gray-600 mb-6">{exam.description}</p>
 
-      // Session ni 1 soatdan keyin o'chirish
-      setTimeout(() => {
-        examSessions.delete(examId);
-      }, 60 * 60 * 1000); // 1 soat
+                {/* Features */}
+                <div className="space-y-2 mb-6">
+                  {exam.features.map((feature, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <FiCheck className="text-green-500" size={16} />
+                      <span className="text-sm text-gray-700">{feature}</span>
+                    </div>
+                  ))}
+                </div>
 
-      res.json({
-        status: "success",
-        data: {
-          examId,
-          results: {
-            totalQuestions,
-            answeredQuestions,
-            correctAnswers,
-            wrongAnswers,
-            unansweredQuestions,
-            percentage,
-            startTime: session.startTime,
-            endTime: session.endTime,
-            duration: Math.round(
-              (session.endTime - session.startTime) / 1000 / 60
-            ), // minutes
-          },
-        },
-      });
-    } catch (error) {
-      console.error("Complete exam error:", error);
-      res.status(500).json({ status: "error", message: error.message });
-    }
-  }
-);
+                {/* Stats Cards */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="bg-gray-50 rounded-xl p-3">
+                    <div className="flex items-center space-x-2">
+                      <FiClock className="text-blue-500" size={18} />
+                      <div>
+                        <div className="text-lg font-bold text-gray-800">
+                          {exam.duration}
+                        </div>
+                        <div className="text-xs text-gray-500">daqiqa</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-3">
+                    <div className="flex items-center space-x-2">
+                      <FiTarget className="text-purple-500" size={18} />
+                      <div>
+                        <div className="text-lg font-bold text-gray-800">
+                          {exam.questions * 5}
+                        </div>
+                        <div className="text-xs text-gray-500">max ball</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-// Exam status olish
-router.get(
-  "/status/:examId",
-  authMiddleware,
-  checkProPlan,
-  async (req, res) => {
-    try {
-      const { examId } = req.params;
-      const { userId } = req.userData;
+                <button
+                  onClick={() => handleStartExam(exam.questions)}
+                  disabled={isLoading}
+                  className={`w-full bg-gradient-to-r ${exam.bgGradient} text-white py-4 px-6 rounded-xl font-bold text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <FiPlay size={20} />
+                  <span>{isLoading ? "Tayyorlanmoqda..." : "Boshlash"}</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
 
-      const session = examSessions.get(examId);
+        {/* Instructions */}
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-8">
+          <div className="flex items-start space-x-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 bg-yellow-200 rounded-full flex items-center justify-center">
+                <FiAlertCircle className="text-yellow-700" size={24} />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-xl font-bold text-gray-800 mb-3">
+                Imtihon qoidalari
+              </h4>
+              <div className="grid md:grid-cols-2 gap-4">
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-start space-x-2">
+                    <span className="text-yellow-600 mt-1">•</span>
+                    <span className="text-sm">
+                      Imtihon boshlanishi bilan vaqt hisoblanadi
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-yellow-600 mt-1">•</span>
+                    <span className="text-sm">
+                      Har bir savolga faqat bir marta javob berish mumkin
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-yellow-600 mt-1">•</span>
+                    <span className="text-sm">
+                      Savollarni o'tkazib yuborishingiz mumkin
+                    </span>
+                  </li>
+                </ul>
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-start space-x-2">
+                    <span className="text-yellow-600 mt-1">•</span>
+                    <span className="text-sm">
+                      Vaqt tugashi bilan imtihon avtomatik yakunlanadi
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-yellow-600 mt-1">•</span>
+                    <span className="text-sm">
+                      Natijalar darhol ko'rsatiladi
+                    </span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-yellow-600 mt-1">•</span>
+                    <span className="text-sm">
+                      Xatolar tahlili uchun saqlanadi
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-      if (!session || session.userId !== userId) {
-        return res.status(404).json({
-          status: "error",
-          message: "Exam topilmadi",
-        });
-      }
-
-      const answeredCount = Object.keys(session.results).length;
-      const correctCount = Object.values(session.results).filter(
-        Boolean
-      ).length;
-
-      res.json({
-        status: "success",
-        data: {
-          examId,
-          examStatus: session.status,
-          language: session.language,
-          questionCount: session.questionCount,
-          totalQuestions: session.questions.length,
-          answeredQuestions: answeredCount,
-          correctAnswers: correctCount,
-          currentQuestion: session.currentQuestion,
-          startTime: session.startTime,
-          endTime: session.endTime,
-        },
-      });
-    } catch (error) {
-      console.error("Exam status error:", error);
-      res.status(500).json({ status: "error", message: error.message });
-    }
-  }
-);
-
-export default router;
+export default Exam;

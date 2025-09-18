@@ -1,3 +1,4 @@
+// src/App.jsx - Exam routes qo'shish
 import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -31,7 +32,8 @@ import Plans from "./pages/Plans";
 import AdminDashboard from "./pages/AdminDashboard";
 import StudentDetails from "./pages/StudentDetails";
 import PlanManagement from "./pages/PlanManagement";
-// import ExamTest from "./pages/ExamTest"; // Agar kerak bo'lsa
+import Exam from "./pages/Exam"; // NEW
+import ExamTest from "./pages/ExamTest"; // NEW
 
 const AppContent = () => {
   const dispatch = useDispatch();
@@ -95,7 +97,7 @@ const AppContent = () => {
           element={userAuth ? <Navigate to="/" replace /> : <Register />}
         />
 
-        {/* Plans page - no layout (accessible for both authenticated and non-authenticated) */}
+        {/* Plans page - no layout */}
         <Route path="/plans" element={<Plans />} />
 
         {/* Admin routes - no layout */}
@@ -124,7 +126,7 @@ const AppContent = () => {
           }
         />
 
-        {/* Test page - no layout, auth required */}
+        {/* Test pages - no layout */}
         <Route
           path="/test/:lang/:templateId"
           element={
@@ -134,23 +136,33 @@ const AppContent = () => {
           }
         />
 
-        {/* Exam routes (agar kerak bo'lsa) */}
-        {/* <Route
-          path="/exam/:examId/:questionIndex"
+        {/* Exam Test page - no layout */}
+        <Route
+          path="/exam-test/:examId/:questionIndex"
           element={
             <ProtectedRoute>
               <ExamTest />
             </ProtectedRoute>
           }
-        /> */}
+        />
 
-        {/* Routes with Layout - using nested route structure */}
+        {/* Routes with Layout */}
         <Route path="/" element={<Layout />}>
           {/* Home page */}
           <Route index element={<Home />} />
 
           {/* Templates */}
           <Route path="templates" element={<Templates />} />
+
+          {/* Exam - NEW */}
+          <Route
+            path="exam"
+            element={
+              <ProtectedRoute>
+                <Exam />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Mistakes - auth required */}
           <Route

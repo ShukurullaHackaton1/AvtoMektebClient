@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// src/pages/ExamTest.jsx
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   FiCheck,
@@ -7,6 +8,7 @@ import {
   FiFlag,
   FiArrowLeft,
   FiArrowRight,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import api from "../utils/api";
 import toast from "react-hot-toast";
@@ -22,9 +24,12 @@ const ExamTest = () => {
   const [examInfo, setExamInfo] = useState(null);
   const [questionNav, setQuestionNav] = useState([]);
   const [timeRemaining, setTimeRemaining] = useState(null);
+  const [showResult, setShowResult] = useState(false);
+  const [lastResult, setLastResult] = useState(null);
 
   const currentIndex = parseInt(questionIndex) || 0;
 
+  // Fetch question
   useEffect(() => {
     fetchQuestion();
     fetchExamStatus();
@@ -32,19 +37,19 @@ const ExamTest = () => {
 
   // Timer effect
   useEffect(() => {
-    if (examInfo?.startTime) {
+    if (examInfo?.startTime && examInfo?.duration) {
       const startTime = new Date(examInfo.startTime);
-      const maxDuration = 2 * 60 * 60 * 1000; // 2 soat
+      const duration = examInfo.duration * 60 * 1000; // Convert minutes to milliseconds
+      const expiresAt = new Date(examInfo.expiresAt);
 
       const timer = setInterval(() => {
         const now = new Date();
-        const elapsed = now - startTime;
-        const remaining = maxDuration - elapsed;
+        const remaining = expiresAt - now;
 
         if (remaining <= 0) {
           // Vaqt tugadi
-          handleCompleteExam();
           clearInterval(timer);
+          handleCompleteExam(true);
         } else {
           setTimeRemaining(remaining);
         }
@@ -57,6 +62,9 @@ const ExamTest = () => {
   const fetchQuestion = async () => {
     try {
       setIsLoading(true);
+      setShowResult(false);
+      setLastResult(null);
+
       const response = await api.get(
         `/exam/question/${examId}/${currentIndex}`
       );
@@ -68,6 +76,9 @@ const ExamTest = () => {
       // Agar allaqachon javob berilgan bo'lsa
       if (data.isAnswered) {
         setSelectedAnswer(data.userAnswer);
+        setShowResult(true);
+        // Fetch the result
+        fetchQuestionResult(data.question.id);
       } else {
         setSelectedAnswer(null);
       }
@@ -79,6 +90,12 @@ const ExamTest = () => {
     }
   };
 
+  const fetchQuestionResult = async (questionId) => {
+    // This would need a separate endpoint to get the result
+    // For now, we'll just mark it as answered
+    setShowResult(true);
+  };
+
   const fetchExamStatus = async () => {
     try {
       const response = await api.get(`/exam/status/${examId}`);
@@ -87,8 +104,8 @@ const ExamTest = () => {
       // Navigation uchun savollar holatini yaratish
       const nav = Array.from({ length: data.totalQuestions }, (_, index) => ({
         index,
-        isAnswered: false, // Bu ma'lumot alohida olinadi
-        isCorrect: null,
+        isAnswered: index < data.answeredQuestions,
+        isCorrect: null, // This would need more info from backend
       }));
       setQuestionNav(nav);
     } catch (error) {
@@ -109,7 +126,11 @@ const ExamTest = () => {
         selectedAnswer: selectedAnswer,
       });
 
-      toast.success(response.data.data.isCorrect ? "To'g'ri!" : "Noto'g'ri!");
+      const result = response.data.data;
+      setLastResult(result);
+      setShowResult(true);
+
+      toast.success(result.isCorrect ? "To'g'ri!" : "Noto'g'ri!");
 
       // Navigation ni yangilash
       setQuestionNav((prev) =>
@@ -118,44 +139,58 @@ const ExamTest = () => {
             ? {
                 ...item,
                 isAnswered: true,
-                isCorrect: response.data.data.isCorrect,
+                isCorrect: result.isCorrect,
               }
             : item
         )
       );
 
-      // Keyingi savolga o'tish (agar oxirgi savol bo'lmasa)
-      if (currentIndex < questionNav.length - 1) {
-        setTimeout(() => {
-          navigate(`/exam/${examId}/${currentIndex + 1}`);
-        }, 1500);
-      }
+      // Automatically go to next question after 2 seconds
+      setTimeout(() => {
+        if (currentIndex < questionNav.length - 1) {
+          navigate(`/exam-test/${examId}/${currentIndex + 1}`);
+        }
+      }, 2000);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Xatolik yuz berdi");
+      if (
+        error.response?.data?.message === "Bu savolga allaqachon javob berilgan"
+      ) {
+        toast.warning("Bu savolga allaqachon javob berilgan");
+        setShowResult(true);
+      } else {
+        toast.error(error.response?.data?.message || "Xatolik yuz berdi");
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleCompleteExam = async () => {
+  const handleCompleteExam = async (autoComplete = false) => {
+    if (autoComplete) {
+      toast.warning("Vaqt tugadi! Imtihon avtomatik yakunlanmoqda...");
+    }
+
     try {
       const response = await api.post(`/exam/complete/${examId}`);
-      toast.success("Imtihon tugallandi!");
+      const results = response.data.data.results;
 
-      // Results sahifasiga yo'naltirish
-      navigate(`/exam-results/${examId}`, {
-        state: { results: response.data.data.results },
+      toast.success("Imtihon yakunlandi!");
+
+      // Navigate to results page or back to exam page
+      navigate("/exam", {
+        state: {
+          results,
+          message: `Natija: ${results.correctAnswers}/${results.totalQuestions} (${results.percentage}%)`,
+        },
       });
     } catch (error) {
       toast.error("Imtihonni tugatishda xatolik");
+      navigate("/exam");
     }
   };
 
   const navigateToQuestion = (index) => {
-    // Faqat javob berilgan yoki joriy savolga o'tish mumkin
-    if (index <= currentIndex || questionNav[index]?.isAnswered) {
-      navigate(`/exam/${examId}/${index}`);
-    }
+    navigate(`/exam-test/${examId}/${index}`);
   };
 
   const renderQuestionBody = (body) => {
@@ -176,7 +211,7 @@ const ExamTest = () => {
               <img
                 src={`${baseUrl}/${item.value}`}
                 alt="Question"
-                className="max-w-full h-auto rounded-lg shadow-sm"
+                className="max-w-full h-auto rounded-lg shadow-sm mx-auto"
                 onError={(e) => {
                   e.target.style.display = "none";
                 }}
@@ -191,13 +226,12 @@ const ExamTest = () => {
 
   const formatTime = (milliseconds) => {
     const totalSeconds = Math.floor(milliseconds / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
-    return `${hours.toString().padStart(2, "0")}:${minutes
+    return `${minutes.toString().padStart(2, "0")}:${seconds
       .toString()
-      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+      .padStart(2, "0")}`;
   };
 
   const getQuestionButtonClass = (item, index) => {
@@ -209,21 +243,18 @@ const ExamTest = () => {
         return (
           baseClass + "bg-green-100 text-green-700 border-2 border-green-300"
         );
-      } else {
+      } else if (item.isCorrect === false) {
         return baseClass + "bg-red-100 text-red-700 border-2 border-red-300";
+      } else {
+        return baseClass + "bg-blue-100 text-blue-700 border-2 border-blue-300";
       }
     } else if (index === currentIndex) {
       return (
         baseClass +
-        "bg-blue-100 text-blue-700 border-2 border-blue-300 ring-2 ring-blue-200"
+        "bg-yellow-100 text-yellow-700 border-2 border-yellow-300 ring-2 ring-yellow-200"
       );
-    } else if (index < currentIndex) {
-      return baseClass + "bg-gray-100 text-gray-600 border-2 border-gray-300";
     } else {
-      return (
-        baseClass +
-        "bg-white text-gray-400 border-2 border-gray-200 cursor-not-allowed"
-      );
+      return baseClass + "bg-white text-gray-400 border-2 border-gray-200";
     }
   };
 
@@ -238,9 +269,10 @@ const ExamTest = () => {
     );
   }
 
-  const isAnswered = questionNav[currentIndex]?.isAnswered;
-  const canSubmit = selectedAnswer !== null && !isAnswered;
+  const canSubmit = selectedAnswer !== null && !showResult;
   const answeredCount = questionNav.filter((q) => q.isAnswered).length;
+  const isLastQuestion = currentIndex === questionNav.length - 1;
+  const allQuestionsAnswered = answeredCount === questionNav.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -249,7 +281,11 @@ const ExamTest = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => navigate("/exam")}
+              onClick={() => {
+                if (window.confirm("Imtihonni tark etmoqchimisiz?")) {
+                  navigate("/exam");
+                }
+              }}
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
             >
               <FiArrowLeft size={20} />
@@ -264,15 +300,15 @@ const ExamTest = () => {
           <div className="flex items-center space-x-6">
             {/* Timer */}
             {timeRemaining && (
-              <div className="flex items-center space-x-2 text-sm">
-                <FiClock size={16} />
-                <span
-                  className={`font-mono ${
-                    timeRemaining < 600000 ? "text-red-600" : "text-gray-600"
-                  }`}
-                >
-                  {formatTime(timeRemaining)}
-                </span>
+              <div
+                className={`flex items-center space-x-2 text-lg font-mono ${
+                  timeRemaining < 300000
+                    ? "text-red-600 animate-pulse"
+                    : "text-gray-700"
+                }`}
+              >
+                <FiClock size={20} />
+                <span>{formatTime(timeRemaining)}</span>
               </div>
             )}
 
@@ -290,25 +326,23 @@ const ExamTest = () => {
 
       <div className="max-w-7xl mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Question */}
+          {/* Question Area */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-6">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
               <div className="mb-6">
-                <div className="flex items-center space-x-3 mb-4">
+                <div className="flex items-center justify-between mb-4">
                   <span className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
                     Savol {currentIndex + 1}
                   </span>
-                  {isAnswered && (
+                  {showResult && lastResult && (
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        questionNav[currentIndex]?.isCorrect
+                        lastResult.isCorrect
                           ? "bg-green-100 text-green-700"
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {questionNav[currentIndex]?.isCorrect
-                        ? "To'g'ri"
-                        : "Noto'g'ri"}
+                      {lastResult.isCorrect ? "To'g'ri" : "Noto'g'ri"}
                     </span>
                   )}
                 </div>
@@ -323,44 +357,60 @@ const ExamTest = () => {
                 {currentQuestion?.answers?.map((answer, index) => (
                   <button
                     key={answer.id}
-                    onClick={() => !isAnswered && setSelectedAnswer(answer.id)}
-                    disabled={isAnswered}
+                    onClick={() => !showResult && setSelectedAnswer(answer.id)}
+                    disabled={showResult}
                     className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 ${
-                      isAnswered
-                        ? "cursor-not-allowed opacity-75"
+                      showResult
+                        ? lastResult?.correctAnswer?.id === answer.id
+                          ? "border-green-500 bg-green-50 text-green-700"
+                          : selectedAnswer === answer.id &&
+                            !lastResult?.isCorrect
+                          ? "border-red-500 bg-red-50 text-red-700"
+                          : "border-gray-200 bg-gray-50 opacity-50"
                         : selectedAnswer === answer.id
                         ? "border-blue-500 bg-blue-50 text-blue-700"
                         : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <span className="w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-xs font-medium">
-                        {String.fromCharCode(65 + index)}
-                      </span>
-                      <span>
-                        {answer.body.map((item) => item.value).join(" ")}
-                      </span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <span className="w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-xs font-medium">
+                          {String.fromCharCode(65 + index)}
+                        </span>
+                        <span>
+                          {answer.body.map((item) => item.value).join(" ")}
+                        </span>
+                      </div>
+                      {showResult && lastResult && (
+                        <div>
+                          {lastResult.correctAnswer?.id === answer.id && (
+                            <FiCheck className="text-green-600" size={20} />
+                          )}
+                          {selectedAnswer === answer.id &&
+                            !lastResult.isCorrect && (
+                              <FiX className="text-red-600" size={20} />
+                            )}
+                        </div>
+                      )}
                     </div>
                   </button>
                 ))}
               </div>
-            </div>
 
-            {/* Navigation */}
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() =>
-                  currentIndex > 0 && navigateToQuestion(currentIndex - 1)
-                }
-                disabled={currentIndex === 0}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FiArrowLeft size={16} />
-                <span>Oldingi</span>
-              </button>
+              {/* Action Buttons */}
+              <div className="mt-6 flex items-center justify-between">
+                <button
+                  onClick={() =>
+                    currentIndex > 0 && navigateToQuestion(currentIndex - 1)
+                  }
+                  disabled={currentIndex === 0}
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FiArrowLeft size={16} />
+                  <span>Oldingi</span>
+                </button>
 
-              <div className="flex items-center space-x-3">
-                {!isAnswered && canSubmit && (
+                {!showResult && canSubmit && (
                   <button
                     onClick={submitAnswer}
                     disabled={isSubmitting}
@@ -370,29 +420,28 @@ const ExamTest = () => {
                   </button>
                 )}
 
-                {currentIndex === questionNav.length - 1 &&
-                  answeredCount === questionNav.length && (
-                    <button
-                      onClick={handleCompleteExam}
-                      className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center space-x-2"
-                    >
-                      <FiFlag size={16} />
-                      <span>Imtihonni tugatish</span>
-                    </button>
-                  )}
+                {isLastQuestion && allQuestionsAnswered ? (
+                  <button
+                    onClick={() => handleCompleteExam(false)}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center space-x-2"
+                  >
+                    <FiFlag size={16} />
+                    <span>Imtihonni tugatish</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() =>
+                      currentIndex < questionNav.length - 1 &&
+                      navigateToQuestion(currentIndex + 1)
+                    }
+                    disabled={currentIndex === questionNav.length - 1}
+                    className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span>Keyingi</span>
+                    <FiArrowRight size={16} />
+                  </button>
+                )}
               </div>
-
-              <button
-                onClick={() =>
-                  currentIndex < questionNav.length - 1 &&
-                  navigateToQuestion(currentIndex + 1)
-                }
-                disabled={currentIndex === questionNav.length - 1}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span>Keyingi</span>
-                <FiArrowRight size={16} />
-              </button>
             </div>
           </div>
 
@@ -400,7 +449,7 @@ const ExamTest = () => {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Savollar bo'yicha navigatsiya
+                Savollar navigatsiyasi
               </h3>
 
               <div className="grid grid-cols-5 gap-2 mb-6">
@@ -408,7 +457,6 @@ const ExamTest = () => {
                   <button
                     key={index}
                     onClick={() => navigateToQuestion(index)}
-                    disabled={index > currentIndex && !item.isAnswered}
                     className={getQuestionButtonClass(item, index)}
                   >
                     {index + 1}
@@ -426,8 +474,12 @@ const ExamTest = () => {
                   <span className="text-gray-600">Noto'g'ri javob</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-blue-100 border-2 border-blue-300 rounded"></div>
+                  <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
                   <span className="text-gray-600">Joriy savol</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-blue-100 border-2 border-blue-300 rounded"></div>
+                  <span className="text-gray-600">Javob berilgan</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 bg-white border-2 border-gray-200 rounded"></div>
@@ -452,6 +504,16 @@ const ExamTest = () => {
                     </span>
                   </div>
                 </div>
+
+                {allQuestionsAnswered && (
+                  <button
+                    onClick={() => handleCompleteExam(false)}
+                    className="w-full mt-4 px-4 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center space-x-2"
+                  >
+                    <FiFlag size={18} />
+                    <span>Imtihonni yakunlash</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
