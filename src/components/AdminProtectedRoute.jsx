@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getAdminProfile } from "../store/slices/adminSlice";
+import { useTranslation } from "react-i18next";
 
 const AdminProtectedRoute = ({ children }) => {
   const {
@@ -13,6 +14,7 @@ const AdminProtectedRoute = ({ children }) => {
   const { isAuthenticated: userAuth, user } = useSelector(
     (state) => state.auth
   );
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const location = useLocation();
   const [profileChecked, setProfileChecked] = useState(false);
@@ -54,7 +56,7 @@ const AdminProtectedRoute = ({ children }) => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
-          <p className="text-gray-600">Admin panel yuklanmoqda...</p>
+          <p className="text-gray-600">{t("adminPanelLoading")}</p>
         </div>
       </div>
     );

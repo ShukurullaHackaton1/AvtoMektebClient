@@ -1,4 +1,3 @@
-// src/pages/Exam.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -35,15 +34,15 @@ const Exam = () => {
   const examTypes = [
     {
       id: "20",
-      title: "Tezkor Imtihon",
+      title: t("quickExam"),
       questions: 20,
       duration: 20,
-      description: "Tez va samarali bilimlaringizni sinab ko'ring",
+      description: t("quickDescription"),
       features: [
-        "20 ta savol",
-        "20 daqiqa vaqt",
-        "Barcha mavzulardan",
-        "Tezkor natija",
+        `20 ${t("questions")}`,
+        `20 ${t("minutes")}`,
+        t("allTopics"),
+        t("quickResult"),
       ],
       icon: FiFileText,
       color: "blue",
@@ -52,15 +51,15 @@ const Exam = () => {
     },
     {
       id: "50",
-      title: "To'liq Imtihon",
+      title: t("fullExam"),
       questions: 50,
       duration: 45,
-      description: "Chuqur va keng qamrovli bilim darajangizni aniqlang",
+      description: t("fullDescription"),
       features: [
-        "50 ta savol",
-        "45 daqiqa vaqt",
-        "Keng qamrovli",
-        "Batafsil tahlil",
+        `50 ${t("questions")}`,
+        `45 ${t("minutes")}`,
+        t("comprehensiveTest"),
+        t("detailedAnalysisText"),
       ],
       icon: FiAward,
       color: "purple",
@@ -83,7 +82,7 @@ const Exam = () => {
 
   const handleStartExam = async (questionCount) => {
     if (!selectedLang) {
-      toast.error("Iltimos tilni tanlang!");
+      toast.error(t("selectLanguage"));
       return;
     }
 
@@ -97,14 +96,11 @@ const Exam = () => {
 
       const { examId } = response.data.data;
 
-      // Navigate to exam test page
       navigate(`/exam-test/${examId}/0`);
 
-      toast.success("Imtihon boshlandi! Omad!");
+      toast.success(t("startExam"));
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Imtihon yaratishda xatolik"
-      );
+      toast.error(error.response?.data?.message || t("error"));
     } finally {
       setIsLoading(false);
     }
@@ -119,11 +115,10 @@ const Exam = () => {
             <FiAward className="text-white" size={48} />
           </div>
           <h1 className="text-5xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Imtihon Rejimi
+            {t("examMode")}
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Professional bilim darajangizni sinab ko'ring! Turli mavzulardan
-            tasodifiy tanlangan savollar orqali o'z bilimlaringizni baholang
+            {t("professionalLevel")}
           </p>
         </div>
 
@@ -135,21 +130,25 @@ const Exam = () => {
                 <div className="text-3xl font-bold text-blue-600">
                   {user.totalTests || 0}
                 </div>
-                <div className="text-sm text-gray-600 mt-1">Jami testlar</div>
+                <div className="text-sm text-gray-600 mt-1">
+                  {t("totalTests")}
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-green-600">
                   {user.totalCorrect || 0}
                 </div>
                 <div className="text-sm text-gray-600 mt-1">
-                  To'g'ri javoblar
+                  {t("correctAnswers")}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-red-600">
                   {user.totalWrong || 0}
                 </div>
-                <div className="text-sm text-gray-600 mt-1">Xato javoblar</div>
+                <div className="text-sm text-gray-600 mt-1">
+                  {t("wrongAnswers")}
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-purple-600">
@@ -158,7 +157,9 @@ const Exam = () => {
                     : 0}
                   %
                 </div>
-                <div className="text-sm text-gray-600 mt-1">Muvaffaqiyat</div>
+                <div className="text-sm text-gray-600 mt-1">
+                  {t("successRate")}
+                </div>
               </div>
             </div>
           </div>
@@ -168,7 +169,7 @@ const Exam = () => {
         <div className="mb-10">
           <h3 className="text-xl font-semibold text-gray-700 text-center mb-6">
             <FiGlobe className="inline mr-2" size={24} />
-            Imtihon tilini tanlang
+            {t("selectLanguage")}
           </h3>
           <div className="flex flex-wrap justify-center gap-3">
             {languages.map((lang) => (
@@ -198,7 +199,7 @@ const Exam = () => {
             >
               {exam.recommended && (
                 <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-bold">
-                  Tavsiya etiladi
+                  {t("recommended")}
                 </div>
               )}
 
@@ -216,7 +217,7 @@ const Exam = () => {
                       {exam.questions}
                     </div>
                     <div className="text-sm text-gray-500 font-medium">
-                      savol
+                      {t("questions")}
                     </div>
                   </div>
                 </div>
@@ -245,7 +246,9 @@ const Exam = () => {
                         <div className="text-lg font-bold text-gray-800">
                           {exam.duration}
                         </div>
-                        <div className="text-xs text-gray-500">daqiqa</div>
+                        <div className="text-xs text-gray-500">
+                          {t("minutes")}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -256,7 +259,9 @@ const Exam = () => {
                         <div className="text-lg font-bold text-gray-800">
                           {exam.questions * 5}
                         </div>
-                        <div className="text-xs text-gray-500">max ball</div>
+                        <div className="text-xs text-gray-500">
+                          {t("maxScore")}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -268,7 +273,7 @@ const Exam = () => {
                   className={`w-full bg-gradient-to-r ${exam.bgGradient} text-white py-4 px-6 rounded-xl font-bold text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   <FiPlay size={20} />
-                  <span>{isLoading ? "Tayyorlanmoqda..." : "Boshlash"}</span>
+                  <span>{isLoading ? t("preparing") : t("startExam")}</span>
                 </button>
               </div>
             </div>
@@ -285,47 +290,35 @@ const Exam = () => {
             </div>
             <div className="flex-1">
               <h4 className="text-xl font-bold text-gray-800 mb-3">
-                Imtihon qoidalari
+                {t("examRules")}
               </h4>
               <div className="grid md:grid-cols-2 gap-4">
                 <ul className="space-y-2 text-gray-700">
                   <li className="flex items-start space-x-2">
                     <span className="text-yellow-600 mt-1">•</span>
-                    <span className="text-sm">
-                      Imtihon boshlanishi bilan vaqt hisoblanadi
-                    </span>
+                    <span className="text-sm">{t("timeStartsNow")}</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="text-yellow-600 mt-1">•</span>
-                    <span className="text-sm">
-                      Har bir savolga faqat bir marta javob berish mumkin
-                    </span>
+                    <span className="text-sm">{t("oneAnswerOnly")}</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="text-yellow-600 mt-1">•</span>
-                    <span className="text-sm">
-                      Savollarni o'tkazib yuborishingiz mumkin
-                    </span>
+                    <span className="text-sm">{t("canSkip")}</span>
                   </li>
                 </ul>
                 <ul className="space-y-2 text-gray-700">
                   <li className="flex items-start space-x-2">
                     <span className="text-yellow-600 mt-1">•</span>
-                    <span className="text-sm">
-                      Vaqt tugashi bilan imtihon avtomatik yakunlanadi
-                    </span>
+                    <span className="text-sm">{t("autoFinish")}</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="text-yellow-600 mt-1">•</span>
-                    <span className="text-sm">
-                      Natijalar darhol ko'rsatiladi
-                    </span>
+                    <span className="text-sm">{t("immediateResults")}</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="text-yellow-600 mt-1">•</span>
-                    <span className="text-sm">
-                      Xatolar tahlili uchun saqlanadi
-                    </span>
+                    <span className="text-sm">{t("mistakesSaved")}</span>
                   </li>
                 </ul>
               </div>

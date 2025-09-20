@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   FiDollarSign,
   FiCalendar,
@@ -16,6 +17,7 @@ import toast from "react-hot-toast";
 
 const PlanManagement = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [planData, setPlanData] = useState(null);
   const [formData, setFormData] = useState({
     price: "",
@@ -43,7 +45,6 @@ const PlanManagement = () => {
       const plan = response.data.data;
       setPlanData(plan);
 
-      // Form ga yuklab olish
       setFormData({
         price: plan.price || "",
         originalPrice: plan.originalPrice || "",
@@ -54,7 +55,7 @@ const PlanManagement = () => {
       });
     } catch (error) {
       console.error("Plan fetch error:", error);
-      toast.error("Plan ma'lumotlarini yuklashda xatolik");
+      toast.error(t("error"));
     } finally {
       setIsLoading(false);
     }
@@ -93,14 +94,13 @@ const PlanManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.price || formData.price <= 0) {
-      toast.error("Narx 0 dan katta bo'lishi kerak");
+      toast.error(t("priceExample"));
       return;
     }
 
     if (!formData.duration || formData.duration < 1) {
-      toast.error("Muddat kamida 1 kun bo'lishi kerak");
+      toast.error(t("durationExample"));
       return;
     }
 
@@ -123,7 +123,7 @@ const PlanManagement = () => {
         }
       );
 
-      toast.success("Plan narxlari muvaffaqiyatli yangilandi!");
+      toast.success(t("updated"));
       fetchPlanData();
       fetchHistory();
     } catch (error) {
@@ -131,7 +131,7 @@ const PlanManagement = () => {
       if (error.response?.status === 403) {
         toast.error("Faqat super admin bu amalni bajara oladi");
       } else {
-        toast.error(error.response?.data?.message || "Yangilashda xatolik");
+        toast.error(error.response?.data?.message || t("error"));
       }
     } finally {
       setIsSaving(false);
@@ -157,7 +157,7 @@ const PlanManagement = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Plan ma'lumotlari yuklanmoqda...</p>
+          <p className="text-gray-600">{t("loading")}</p>
         </div>
       </div>
     );
@@ -176,11 +176,11 @@ const PlanManagement = () => {
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
             >
               <FiArrowLeft size={20} />
-              <span>Admin Dashboard</span>
+              <span>{t("adminDashboard")}</span>
             </button>
             <div className="w-px h-6 bg-gray-300"></div>
             <h1 className="text-xl font-bold text-gray-800">
-              PRO Plan Narxlarini Boshqarish
+              {t("planPricing")}
             </h1>
           </div>
         </div>
@@ -193,19 +193,17 @@ const PlanManagement = () => {
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
-                  PRO Plan Sozlamalari
+                  {t("proPlanSettings")}
                 </h2>
-                <p className="text-gray-600 mt-2">
-                  Bu yerda PRO plan narxlarini va muddatini o'zgartiring
-                </p>
+                <p className="text-gray-600 mt-2">{t("changePrice")}</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Narx */}
+                {/* Price */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <FiDollarSign className="inline mr-2" size={16} />
-                    Joriy narx (so'm)
+                    {t("currentPrice")}
                   </label>
                   <input
                     type="number"
@@ -213,22 +211,22 @@ const PlanManagement = () => {
                     value={formData.price}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Masalan: 19999"
+                    placeholder={t("priceExample")}
                     min="0"
                     required
                   />
                   {formData.price && (
                     <p className="mt-2 text-sm text-gray-600">
-                      Ko'rinishi: {formatCurrency(formData.price)}
+                      {t("appearance")}: {formatCurrency(formData.price)}
                     </p>
                   )}
                 </div>
 
-                {/* Eski narx (chegirma uchun) */}
+                {/* Original Price */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <FiPercent className="inline mr-2" size={16} />
-                    Eski narx (chegirma ko'rsatish uchun, optional)
+                    {t("oldPrice")}
                   </label>
                   <input
                     type="number"
@@ -236,23 +234,23 @@ const PlanManagement = () => {
                     value={formData.originalPrice}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Masalan: 40000"
+                    placeholder={t("oldPriceExample")}
                     min="0"
                   />
                   {discountPercentage > 0 && (
                     <p className="mt-2 text-sm text-green-600">
-                      Chegirma: {discountPercentage}% (
+                      {t("discountPercent")}: {discountPercentage}% (
                       {formatCurrency(formData.originalPrice - formData.price)}{" "}
-                      tejash)
+                      {t("savings")})
                     </p>
                   )}
                 </div>
 
-                {/* Muddat */}
+                {/* Duration */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <FiCalendar className="inline mr-2" size={16} />
-                    Plan muddati (kunlarda)
+                    {t("planDuration")}
                   </label>
                   <input
                     type="number"
@@ -260,22 +258,22 @@ const PlanManagement = () => {
                     value={formData.duration}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Masalan: 30"
+                    placeholder={t("durationExample")}
                     min="1"
                     required
                   />
                   <p className="mt-2 text-sm text-gray-600">
-                    {formData.duration} kun ={" "}
-                    {Math.floor(formData.duration / 30)} oy{" "}
-                    {formData.duration % 30} kun
+                    {formData.duration} {t("daysEqual")}{" "}
+                    {Math.floor(formData.duration / 30)} {t("months")}{" "}
+                    {formData.duration % 30} {t("days")}
                   </p>
                 </div>
 
-                {/* Chegirma tugash sanasi */}
+                {/* Discount End Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <FiClock className="inline mr-2" size={16} />
-                    Chegirma tugash sanasi (optional)
+                    {t("discountEndDate")}
                   </label>
                   <input
                     type="date"
@@ -290,9 +288,7 @@ const PlanManagement = () => {
                 <div className="flex items-center justify-between pt-6 border-t border-gray-200">
                   <div className="flex items-center space-x-2 text-sm text-gray-500">
                     <FiAlertCircle size={16} />
-                    <span>
-                      O'zgarishlar barcha foydalanuvchilar uchun amal qiladi
-                    </span>
+                    <span>{t("changesApplyAll")}</span>
                   </div>
                   <button
                     type="submit"
@@ -300,7 +296,7 @@ const PlanManagement = () => {
                     className="px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50 flex items-center space-x-2"
                   >
                     <FiSave size={18} />
-                    <span>{isSaving ? "Saqlanmoqda..." : "Saqlash"}</span>
+                    <span>{isSaving ? t("saving") : t("save")}</span>
                   </button>
                 </div>
               </form>
@@ -312,13 +308,13 @@ const PlanManagement = () => {
             {/* Current Status */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Joriy holat
+                {t("currentStatus")}
               </h3>
 
               <div className="space-y-4">
                 <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Narx:</span>
+                    <span className="text-sm text-gray-600">{t("price")}:</span>
                     <span className="font-bold text-gray-800">
                       {formatCurrency(planData?.price || 0)}
                     </span>
@@ -327,9 +323,11 @@ const PlanManagement = () => {
 
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Muddat:</span>
+                    <span className="text-sm text-gray-600">
+                      {t("duration")}:
+                    </span>
                     <span className="font-bold text-gray-800">
-                      {planData?.duration || 30} kun
+                      {planData?.duration || 30} {t("days")}
                     </span>
                   </div>
                 </div>
@@ -337,7 +335,9 @@ const PlanManagement = () => {
                 {planData?.originalPrice && (
                   <div className="p-4 bg-green-50 rounded-lg">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Chegirma:</span>
+                      <span className="text-sm text-gray-600">
+                        {t("discount")}:
+                      </span>
                       <span className="font-bold text-green-600">
                         {discountPercentage}%
                       </span>
@@ -347,7 +347,7 @@ const PlanManagement = () => {
 
                 {planData?.updatedAt && (
                   <div className="text-xs text-gray-500 text-center">
-                    Oxirgi yangilanish: {formatDate(planData.updatedAt)}
+                    {t("lastUpdate")}: {formatDate(planData.updatedAt)}
                   </div>
                 )}
               </div>
@@ -357,7 +357,7 @@ const PlanManagement = () => {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <FiTrendingUp className="mr-2" size={20} />
-                O'zgarishlar tarixi
+                {t("changeHistory")}
               </h3>
 
               <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -372,7 +372,7 @@ const PlanManagement = () => {
                           {formatCurrency(item.price)}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {item.duration} kun
+                          {item.duration} {t("days")}
                         </span>
                       </div>
                       <div className="text-xs text-gray-500">
@@ -388,7 +388,7 @@ const PlanManagement = () => {
                   ))
                 ) : (
                   <p className="text-gray-500 text-center py-4">
-                    Hali o'zgarishlar yo'q
+                    {t("noChanges")}
                   </p>
                 )}
               </div>

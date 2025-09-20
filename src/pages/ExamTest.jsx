@@ -1,6 +1,6 @@
-// src/pages/ExamTest.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   FiCheck,
   FiX,
@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import { baseUrl } from "../utils/api";
 
 const ExamTest = () => {
+  const { t } = useTranslation();
   const { examId, questionIndex } = useParams();
   const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -83,7 +84,7 @@ const ExamTest = () => {
         setSelectedAnswer(null);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Savol yuklanmadi");
+      toast.error(error.response?.data?.message || t("loading"));
       navigate("/exam");
     } finally {
       setIsLoading(false);
@@ -112,7 +113,7 @@ const ExamTest = () => {
 
   const submitAnswer = async () => {
     if (selectedAnswer === null) {
-      toast.error("Iltimos javobni tanlang");
+      toast.error(t("selectAnswer"));
       return;
     }
 
@@ -127,7 +128,7 @@ const ExamTest = () => {
       setLastResult(result);
       setShowResult(true);
 
-      toast.success(result.isCorrect ? "To'g'ri!" : "Noto'g'ri!");
+      toast.success(result.isCorrect ? t("correct") : t("incorrect"));
 
       setQuestionNav((prev) =>
         prev.map((item, index) =>
@@ -153,7 +154,7 @@ const ExamTest = () => {
         toast.warning("Bu savolga allaqachon javob berilgan");
         setShowResult(true);
       } else {
-        toast.error(error.response?.data?.message || "Xatolik yuz berdi");
+        toast.error(error.response?.data?.message || t("error"));
       }
     } finally {
       setIsSubmitting(false);
@@ -162,23 +163,25 @@ const ExamTest = () => {
 
   const handleCompleteExam = async (autoComplete = false) => {
     if (autoComplete) {
-      toast.warning("Vaqt tugadi! Imtihon avtomatik yakunlanmoqda...");
+      toast.warning(t("timeUp"));
     }
 
     try {
       const response = await api.post(`/exam/complete/${examId}`);
       const results = response.data.data.results;
 
-      toast.success("Imtihon yakunlandi!");
+      toast.success(t("examCompleted"));
 
       navigate("/exam", {
         state: {
           results,
-          message: `Natija: ${results.correctAnswers}/${results.totalQuestions} (${results.percentage}%)`,
+          message: `${t("result")}: ${results.correctAnswers}/${
+            results.totalQuestions
+          } (${results.percentage}%)`,
         },
       });
     } catch (error) {
-      toast.error("Imtihonni tugatishda xatolik");
+      toast.error(t("error"));
       navigate("/exam");
     }
   };
@@ -204,7 +207,7 @@ const ExamTest = () => {
             <div key={index} className="my-3 md:my-4">
               <img
                 src={`${baseUrl}/${item.value}`}
-                alt="Question"
+                alt={t("question")}
                 className="max-w-full h-auto rounded-lg shadow-sm mx-auto"
                 style={{ maxHeight: "300px" }}
                 onError={(e) => {
@@ -259,7 +262,7 @@ const ExamTest = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Savol yuklanmoqda...</p>
+          <p className="text-gray-600">{t("loading")}</p>
         </div>
       </div>
     );
@@ -278,18 +281,18 @@ const ExamTest = () => {
           <div className="flex items-center space-x-2 md:space-x-4">
             <button
               onClick={() => {
-                if (window.confirm("Imtihonni tark etmoqchimisiz?")) {
+                if (window.confirm(t("leaveExam"))) {
                   navigate("/exam");
                 }
               }}
               className="text-gray-600 hover:text-gray-800 transition-colors"
-              title="Imtihonni tark etish"
+              title={t("leaveExam")}
             >
               <FiArrowLeft size={20} />
             </button>
             <div className="hidden md:block w-px h-6 bg-gray-300"></div>
             <h1 className="text-sm md:text-xl font-bold text-gray-800">
-              Imtihon{" "}
+              {t("examMode")}{" "}
               {examInfo?.language && `- ${examInfo.language.toUpperCase()}`}
             </h1>
           </div>
@@ -312,7 +315,7 @@ const ExamTest = () => {
             {/* Progress - Desktop only */}
             <div className="hidden md:flex items-center space-x-2 text-sm text-gray-600">
               <span>
-                Savol {currentIndex + 1} / {questionNav.length}
+                {t("question")} {currentIndex + 1} / {questionNav.length}
               </span>
             </div>
           </div>
@@ -328,7 +331,7 @@ const ExamTest = () => {
               <div className="mb-4 md:mb-6">
                 <div className="flex items-center justify-between mb-3 md:mb-4">
                   <span className="bg-blue-100 text-blue-700 px-3 py-1 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium">
-                    Savol {currentIndex + 1}
+                    {t("question")} {currentIndex + 1}
                   </span>
                   {showResult && lastResult && (
                     <span
@@ -338,7 +341,7 @@ const ExamTest = () => {
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {lastResult.isCorrect ? "To'g'ri" : "Noto'g'ri"}
+                      {lastResult.isCorrect ? t("correct") : t("incorrect")}
                     </span>
                   )}
                 </div>
@@ -402,7 +405,7 @@ const ExamTest = () => {
                     disabled={isSubmitting}
                     className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm md:text-base"
                   >
-                    {isSubmitting ? "Yuklanmoqda..." : "Javobni tasdiqlash"}
+                    {isSubmitting ? t("loading") : t("confirmAnswer")}
                   </button>
                 )}
 
@@ -416,7 +419,7 @@ const ExamTest = () => {
                     className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FiChevronLeft size={18} />
-                    <span className="text-sm">Oldingi</span>
+                    <span className="text-sm">{t("previousQuestion")}</span>
                   </button>
 
                   <div className="text-sm font-medium text-gray-700">
@@ -428,7 +431,7 @@ const ExamTest = () => {
                       onClick={() => handleCompleteExam(false)}
                       className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                     >
-                      Tugatish
+                      {t("finishExam")}
                     </button>
                   ) : (
                     <button
@@ -439,7 +442,7 @@ const ExamTest = () => {
                       disabled={currentIndex === questionNav.length - 1}
                       className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <span className="text-sm">Keyingi</span>
+                      <span className="text-sm">{t("nextQuestion")}</span>
                       <FiChevronRight size={18} />
                     </button>
                   )}
@@ -455,11 +458,11 @@ const ExamTest = () => {
                           className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all"
                         >
                           <FiFlag size={18} />
-                          <span>Imtihonni tugatish</span>
+                          <span>{t("completeExam")}</span>
                         </button>
                       ) : (
                         <div className="text-center text-sm text-gray-600">
-                          Testni tugatish uchun barcha savollarga javob bering
+                          {t("answerAll")}
                         </div>
                       )
                     ) : (
@@ -467,7 +470,7 @@ const ExamTest = () => {
                         onClick={() => navigateToQuestion(currentIndex + 1)}
                         className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all"
                       >
-                        <span>Keyingi savol</span>
+                        <span>{t("nextQuestion")}</span>
                       </button>
                     )}
                   </div>
@@ -480,7 +483,7 @@ const ExamTest = () => {
           <div className="hidden lg:block lg:col-span-1">
             <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 sticky top-6">
               <h3 className="text-base md:text-lg font-semibold text-gray-800 mb-4">
-                Savollar navigatsiyasi
+                {t("questionNavigation")}
               </h3>
 
               <div className="grid grid-cols-5 gap-2 mb-6">
@@ -498,38 +501,42 @@ const ExamTest = () => {
               <div className="space-y-2 md:space-y-3 text-xs md:text-sm">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-green-100 border-2 border-green-300 rounded"></div>
-                  <span className="text-gray-600">To'g'ri javob</span>
+                  <span className="text-gray-600">{t("correctAnswer")}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-red-100 border-2 border-red-300 rounded"></div>
-                  <span className="text-gray-600">Noto'g'ri javob</span>
+                  <span className="text-gray-600">{t("incorrectAnswer")}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
-                  <span className="text-gray-600">Joriy savol</span>
+                  <span className="text-gray-600">{t("currentQuestion")}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-100 border-2 border-blue-300 rounded"></div>
-                  <span className="text-gray-600">Javob berilgan</span>
+                  <span className="text-gray-600">{t("answered")}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-white border-2 border-gray-200 rounded"></div>
-                  <span className="text-gray-600">Javobsiz</span>
+                  <span className="text-gray-600">{t("unanswered")}</span>
                 </div>
               </div>
 
               <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-200">
                 <div className="space-y-2 text-xs md:text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Jami savollar:</span>
+                    <span className="text-gray-600">
+                      {t("totalQuestions")}:
+                    </span>
                     <span className="font-medium">{questionNav.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Javob berilgan:</span>
+                    <span className="text-gray-600">
+                      {t("answeredQuestions")}:
+                    </span>
                     <span className="font-medium">{answeredCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Qolgan:</span>
+                    <span className="text-gray-600">{t("remaining")}:</span>
                     <span className="font-medium">
                       {questionNav.length - answeredCount}
                     </span>
@@ -542,7 +549,7 @@ const ExamTest = () => {
                     className="w-full mt-4 px-3 py-2 md:px-4 md:py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center space-x-2 text-sm md:text-base"
                   >
                     <FiFlag size={16} />
-                    <span>Imtihonni yakunlash</span>
+                    <span>{t("completeExam")}</span>
                   </button>
                 )}
               </div>
