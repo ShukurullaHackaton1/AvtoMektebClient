@@ -26,10 +26,10 @@ const Exam = () => {
   const [examStats, setExamStats] = useState(null);
 
   const languages = [
-    { code: "uz", name: "O'zbekcha", flag: "🇺🇿" },
-    { code: "ru", name: "Русский", flag: "🇷🇺" },
-    { code: "kiril", name: "Ўзбекча", flag: "🇺🇿" },
-    { code: "kaa", name: "Qaraqalpaqsha", flag: "🇰🇿" },
+    { code: "uz", name: "O'zbekcha" },
+    { code: "ru", name: "Русский" },
+    { code: "kiril", name: "Ўзбекча" },
+    { code: "kaa", name: "Qaraqalpaqsha" },
   ];
 
   const examTypes = [
@@ -181,7 +181,6 @@ const Exam = () => {
                     : "bg-white text-gray-700 hover:bg-gray-50 shadow-md"
                 }`}
               >
-                <span className="text-lg mr-2">{lang.flag}</span>
                 <span>{lang.name}</span>
               </button>
             ))}

@@ -33,7 +33,7 @@ const Navbar = () => {
     { code: "uz", name: "O'zbekcha", flag: "🇺🇿" },
     { code: "ru", name: "Русский", flag: "🇷🇺" },
     { code: "uz_kiril", name: "Ўзбекча", flag: "🇺🇿" },
-    { code: "kaa", name: "Qaraqalpaqsha", flag: "🇰🇿" },
+    { code: "kaa", name: "Qaraqalpaqsha", flag: "🇰r" },
   ];
 
   // User plan ma'lumotlarini olish
@@ -114,9 +114,6 @@ const Navbar = () => {
                 className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors"
               >
                 <FiGlobe size={18} />
-                <span className="text-sm font-medium">
-                  {languages.find((lang) => lang.code === i18n.language)?.flag}
-                </span>
               </button>
 
               {isLangMenuOpen && (
@@ -131,7 +128,6 @@ const Navbar = () => {
                           : "text-gray-700"
                       }`}
                     >
-                      <span>{lang.flag}</span>
                       <span>{lang.name}</span>
                     </button>
                   ))}
@@ -220,9 +216,6 @@ const Navbar = () => {
                 className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors"
               >
                 <FiGlobe size={18} />
-                <span className="text-sm font-medium">
-                  {languages.find((lang) => lang.code === i18n.language)?.flag}
-                </span>
               </button>
 
               {isLangMenuOpen && (
@@ -237,7 +230,6 @@ const Navbar = () => {
                           : "text-gray-700"
                       }`}
                     >
-                      <span>{lang.flag}</span>
                       <span>{lang.name}</span>
                     </button>
                   ))}

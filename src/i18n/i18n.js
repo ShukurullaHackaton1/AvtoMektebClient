@@ -947,8 +947,8 @@ const resources = {
       payViaQR: "QR kod arqalı tólew",
       checkPaymentStatus: "Tólew xalatın tekshiriw",
       activePlan: "Faol Plan",
-      choosePlan: "Test Planların Tanlañ",
-      selectPlan: "Óziñizge mos plan tanlañ hám test sheshiwdi baslañ",
+      choosePlan: "Test Planların Tanlań",
+      selectPlan: "Ózińizge mos plan tanlań hám test sheshiwdi baslań",
       forBeginners: "Baslanǵısh paydalanıwshılar ushın",
       forProfessionals: "Professional paydalanıwshılar ushın",
       popular: "Mashhur",
@@ -991,13 +991,13 @@ const resources = {
       usedTests: "Paydalanıw testler",
       quickStart: "Tez baslaw",
       quickStartDesc:
-        "Daxal test sheshiwdi baslañ hám bilimleriñizdi sinap köriñ",
+        "Daxal test sheshiwdi baslań hám bilimlerińizdi sinap köriń",
       securePayment: "Qawipsiz tólew",
       securePaymentDesc:
-        "Tólewleriñiz qawipsiz hám shifrlen gen usılda amalga ashırıladı",
+        "Tólewlerińiz qawipsiz hám shifrlen gen usılda amalga ashırıladı",
       progressTracking: "Taraqqiyat kuzatıwı",
       progressTrackingDesc:
-        "Óz riwajlanıwıñızdı real waqt rejiminde kuzatıp bariñ",
+        "Óz riwajlanıwıńızdı real waqt rejiminde kuzatıp bariń",
       currentPlan: "Aǵımdağı plan",
       expiryDate: "Móddeti tuǵaw sanası",
       plansComparison: "Planlardı taqqoslaw",
@@ -1008,22 +1008,22 @@ const resources = {
       mistakes: "Qátelikler",
       profile: "Profil",
       testFailed: "Test muwappaqiyatsız tuǵadı",
-      tooManyMistakes: "Siz 3 tadan artıq qátelek qıldıñız. Test toxtatıldı.",
+      tooManyMistakes: "Siz 3 tadan artıq qátelek qıldıńız. Test toxtatıldı.",
       finalResult: "Yakuniy natija",
       correctAnswers: "Dúris juwaplar",
       wrongAnswers: "Naduris juwaplar",
       totalAnswered: "Jami juwaplar",
       backToTemplates: "Shablonlarğa qaytıw",
       questionsNavigation: "Sorawlar nawigatsiyası",
-      selectAnswer: "Juwapdı tanlañ",
+      selectAnswer: "Juwapdı tanlań",
       current: "Aǵımdağı",
       unanswered: "Juwapsız",
 
       // Qátelikler sahifası ushın
       noMistakesYet: "Ázirsha hesh qanday qátelek joq",
-      keepItUp: "Dawam etiñ!",
+      keepItUp: "Dawam etiń!",
       analyzeMistakes:
-        "Óz qátelikleriñizdi tahlil qılıñ hám bilimleriñizdi oshiriñ",
+        "Óz qáteliklerińizdi tahlil qılıń hám bilimlerińizdi oshiriń",
 
       // Yuklaw optimizatsiyası ushın
       loadingTemplates: "Shablonlar yuklanıwda...",
@@ -1031,22 +1031,22 @@ const resources = {
 
       // Profil sahifası jańa jetiskenlikler
       testEnthusiast: "Test ishqibozi",
-      testEnthusiastDesc: "10 ta test islep shıqıñ",
+      testEnthusiastDesc: "10 ta test islep shıqıń",
       teacher: "O'qıtıwshı",
-      teacherDesc: "80% muwappaqiyat darajasına erisiñ",
+      teacherDesc: "80% muwappaqiyat darajasına erisiń",
       knowledgeable: "Bilimdon",
-      knowledgeableDesc: "50 ta dúris juwap beriñ",
+      knowledgeableDesc: "50 ta dúris juwap beriń",
       marathonRunner: "Marafon yúgiriwshisi",
-      marathonRunnerDesc: "100 ta test bajar ıñ",
+      marathonRunnerDesc: "100 ta test bajar ıń",
 
       // Umumiy
       excellent: "Ajoyib!",
       noMistakes: "Sizda hesh qanday qátelek joq!",
-      continueText: "Dawam etiñ hám kóplew test bajar ıñ!",
+      continueText: "Dawam etiń hám kóplew test bajar ıń!",
       explanation: "Túsindiri w",
       piece: "ta",
       // Home Page
-      welcome: " AvtoTest     Test Tizimine Xosh Kelipsiz",
+      welcome: " AvtoTest     Test Platformasina Xosh Kelipsiz",
       homeDescription: "Professional test sheshiw platforması",
       startTesting: "Testti Baslaw",
       viewTemplates: "Shablonlardı Kóriw",
@@ -1056,7 +1056,7 @@ const resources = {
       // Templates Page
       templatesTitle: "Test Shablonları",
       questionsCount: "ta soraw",
-      startTest: "Testti Baslañ",
+      startTest: "Testti Baslań",
 
       // Test Page
       question: "Soraw",
@@ -1068,10 +1068,10 @@ const resources = {
       correctAnswer: "Dúris juwap:",
 
       // Mistakes Page
-      mistakesTitle: "Sizdiń Qátelikleriñiz",
-      noMistakes: "Siz áli hesh qanday qátelek qılmaǵansıñız!",
+      mistakesTitle: "Sizdiń Qáteliklerińiz",
+      noMistakes: "Siz áli hesh qanday qátelek qılmaǵansıńız!",
       templateName: "Shablon atı",
-      yourAnswer: "Sizdiń juwapıñız",
+      yourAnswer: "Sizdiń juwapıńız",
       rightAnswer: "Dúris juwap",
       date: "Sana",
 
@@ -1107,9 +1107,9 @@ const resources = {
       personalInfo: "Jeke ma'lumotlar hám test natijaleri statistikası",
       featuredTitle1: "Maqsetli Ta'lim",
       featuredDesc1:
-        "Har bir test sizdiń bilim darajañızdı oshiriw ushın moljallangan",
+        "Har bir test sizdiń bilim darajańızdı oshiriw ushın moljallangan",
       featuredTitle2: "Taraqqiyot Kuzatuvı",
-      featuredDesc2: "Statistikalar arqalı óz riwajlanıwıñızdı kuzatıp bariñ",
+      featuredDesc2: "Statistikalar arqalı óz riwajlanıwıńızdı kuzatıp bariń",
       featuredTitle3: "Keń Qamrawlı",
       featuredDesc3: "Túrli mawzular boyınsha mıńlab sorawlar bazası",
       viewMore: "Kóplew",
@@ -1119,7 +1119,7 @@ const resources = {
 
       // Templates page
       chooseTemplate:
-        "Óziñizge tuwra kelgen test shablonın tallası hám bilimleriñizdi sinap kóriñ",
+        "Ózińizge tuwra kelgen test shablonın tallası hám bilimlerińizdi sinap kóriń",
       noTemplatesFound: "Shablonlar tabılmadi",
       noTemplatesDesc: "Tallanǵan tilda test shablonları joq",
       template: "Shablon",
@@ -1144,21 +1144,21 @@ const resources = {
 
       // Mistakes page
       analyzeMistakes:
-        "Jasalǵan qátelikleriñizdi tahlil qılıñ hám bilimleriñizdi mustahkamlañ",
+        "Jasalǵan qáteliklerińizdi tahlil qılıń hám bilimlerińizdi mustahkamlań",
       excellent: "Ajoyip! Hesh qanday qátelek joq",
       continueText:
-        "Testlerdi sheshiwde dawam etiñ hám óz bilimleriñizdi jaqsı lap bariñ!",
+        "Testlerdi sheshiwde dawam etiń hám óz bilimlerińizdi jaqsı lap bariń!",
       totalMistakes: "Barlıq qátelikler",
       differentTemplates: "Túrli shablonlar",
       explanation: "Túsindiri w",
       learningTips: "Órgeniw boyınsha keńesler",
-      repeat: "Qaytalañ",
-      repeatDesc: "Qátelek jasalǵan mawzulardı qayta órgeniñ hám qaytalañ",
+      repeat: "Qaytalań",
+      repeatDesc: "Qátelek jasalǵan mawzulardı qayta órgeniń hám qaytalań",
       deepLearning: "Tereń órgeniw",
       deepLearningDesc:
-        "Naduris juwap bergen mawzular boyınsha qosımsha ma'lumot alıñ",
-      practice: "Ámeliyat qılıñ",
-      practiceDesc: "Usı sıyaqlı testlerdi kóplew sheship kóriñ",
+        "Naduris juwap bergen mawzular boyınsha qosımsha ma'lumot alıń",
+      practice: "Ámeliyat qılıń",
+      practiceDesc: "Usı sıyaqlı testlerdi kóplew sheship kóriń",
 
       // Profile page
       specialist: "Mutaxassis",
@@ -1173,29 +1173,29 @@ const resources = {
       wrongPercentage: "Naduris juwaplar",
       achievements: "Jetiskenlikler",
       testEnthusiast: "Test Suyiwshi",
-      testEnthusiastDesc: "10 ta test sheshiñ",
+      testEnthusiastDesc: "10 ta test sheshiń",
       teacher: "Muǵallim",
       teacherDesc: "80% tabıslılıq",
       knowledgeable: "Bilimli",
       knowledgeableDesc: "50 ta dúris juwap",
       marathonRunner: "Marafon Ótkerewshi",
-      marathonRunnerDesc: "100 ta test sheshiñ",
+      marathonRunnerDesc: "100 ta test sheshiń",
 
       // Auth pages
       welcomeToIntalim: " AvtoTest    ga kiriw",
       welcomeDesc: "Test sistemasına xosh kelipsiz",
       enterPhone: "90 123 45 67",
-      enterName: "Atıñızdı kiritiñ",
-      enterLastname: "Familiyañızdı kiritiñ",
-      enterPassword: "Parolıñızdı kiritiñ",
-      repeatPassword: "Paroldı qaytalañ",
+      enterName: "Atıńızdı kiritiń",
+      enterLastname: "Familiyańızdı kiritiń",
+      enterPassword: "Parolıńızdı kiritiń",
+      repeatPassword: "Paroldı qaytalań",
       minChars: "Keminde 6 ta belgi",
-      accountExists: "Xisabıñız barma?",
-      noAccount: "Xisabıñız joqpa?",
-      signUp: "Dizimnen ótiñ",
+      accountExists: "Xisabıńız barma?",
+      noAccount: "Xisabıńız joqpa?",
+      signUp: "Dizimnen ótiń",
       signIn: "Kiriw",
-      createAccount: "Xisab jaratıñ",
-      createAccountDesc: "Jańa xisab jaratıñ hám testlerdi baslası",
+      createAccount: "Xisab jaratıń",
+      createAccountDesc: "Jańa xisab jaratıń hám testlerdi baslası",
       quickStart: "Tez Baslaw",
       secure: "Qawipsiz",
       progress: "Taraqqiyat",
@@ -1205,12 +1205,12 @@ const resources = {
       // Validation messages
       phoneValidation: "Telefon nomeri 8 ta sannan ibarat bolıwı kerek",
       passwordValidation: "Parol keminde 6 ta belgenden ibarat bolıwı kerek",
-      nameValidation: "At hám familiya kiritiñ",
+      nameValidation: "At hám familiya kiritiń",
       passwordMismatch: "Paroller sáy kes kelmedi",
-      loginSuccess: "Tabıslı kirdiñiz!",
-      registerSuccess: "Tabıslı dizimnen óttiñiz!",
+      loginSuccess: "Tabıslı kirdińiz!",
+      registerSuccess: "Tabıslı dizimnen óttińiz!",
       testFinished: "Test tabıslı tamamlandı!",
-      selectAnswer: "Juwapdı tallasıñızdı ótin etemiz",
+      selectAnswer: "Juwapdı tallasıńızdı ótin etemiz",
       // Admin panel translations
       adminPanel: "Admin panel",
       systemManagement: "Sistema basqarıwı",
